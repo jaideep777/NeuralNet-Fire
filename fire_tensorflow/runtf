@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. /home/jaideep/tensorflow/bin/activate
+python nn_const_data_fire_v4.py
+deactivate
+
