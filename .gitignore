@@ -7,6 +7,8 @@
 *.png
 *.o
 *.log
+*.xls
+*.odt
 
 *.zip
 *.tar.gz
