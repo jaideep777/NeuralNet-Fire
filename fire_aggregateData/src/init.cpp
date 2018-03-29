@@ -230,7 +230,9 @@ int read_veg_params_file(){
 	while (fin >> s && s != attrbegin){
 		if (s == "") continue;	// skip empty lines
 		if (s == "#") {getline(fin,s,'\n'); continue;}	// skip #followed lines (comments) 
-		if		(s == "LM")	for (int i=0; i<npft; ++i) fin >> LAImax[i];
+		if		(s == "agri_pft") 		fin >> agri_pft_code;
+		else if (s == "barren_pft") 	fin >> barren_pft_code;
+		else if	(s == "LM")	for (int i=0; i<npft; ++i) fin >> LAImax[i];
 		else if (s == "Lm")	for (int i=0; i<npft; ++i) fin >> LAImin[i];
 		else if (s == "aL")	for (int i=0; i<npft; ++i) fin >> aLf[i];
 		else if (s == "aS")	for (int i=0; i<npft; ++i) fin >> aSf[i];

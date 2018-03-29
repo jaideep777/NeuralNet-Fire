@@ -55,6 +55,7 @@ extern bool lspinup;
 
 // veg params
 extern int npft;
+extern int agri_pft_code, barren_pft_code;
 
 extern vector <float> aLf, aSf, aRf;	// allocation fractions during normal growth
 extern vector <float> aL, aS, aR;		// allocation fractions during current phenology state

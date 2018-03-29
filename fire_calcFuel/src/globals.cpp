@@ -49,6 +49,7 @@ bool canbio_prerun_on = true;
 // size of the vectors is = npft
 
 int npft = -1;
+int agri_pft_code, barren_pft_code;
 
 vector <float> aLf, aSf, aRf;	// allocation fractions during flushing
 vector <float> aL, aS, aR;		// allocation fractions during current phenology state

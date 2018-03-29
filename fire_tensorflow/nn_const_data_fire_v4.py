@@ -34,7 +34,7 @@ ID_ts 		= 9
 ID_wsp 		= 10
 ID_dxl 		= 13
 ID_lmois 	= 14
-ID_ba		= 20 # 19 for georgia, 20 for gfed4
+ID_ba		= 19 # 19 for georgia, 20 for gfed4
 ID_pop		= 22
 	
 X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]

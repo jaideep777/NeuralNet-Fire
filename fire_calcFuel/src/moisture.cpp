@@ -91,7 +91,7 @@ int calc_moisture(){
 				// float m = 4098.17*es/(T+237.3)/(T+237.3);	// kPa/degC (tetens)
 				float es = 0.13332*exp(21.07-5336/(T+273.16));	// kPa (Merva); 0.1333 converts mmHg to kPa
 				float m = 5336*es/(T+273.16)/(T+273.16); 		// kPa/degC (Merva) 
-				float lv = (2501 - 2.361*T)*1e-3; 				// MJ/Kg - latent heat of vapourization
+				float lv = (2501 - 2.361*T)*1e-3; 				// MJ/Kg - latent heat of vapourization. Needs T in degC. REF: Polynomial curve fits to Table 2.1. R. R. Rogers; M. K. Yau (1989). A Short Course in Cloud Physics (3rd ed.). Pergamon Press. p. 16. ISBN 0-7506-3215-1.
 				float y = 0.0016286*Ps/lv; 						// kPa/degC -  slope of vapour pressure curve
 				float de = es*(1-RH);							// kPa	- vapour pressure deficit
 

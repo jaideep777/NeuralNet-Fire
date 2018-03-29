@@ -225,12 +225,14 @@ int read_veg_params_file(){
 	leafLs.resize(npft); Tdecomp.resize(npft);
 	z1Month.resize(npft, -1);		// 1st leafless month, -1 if not found.
 	Wc_sat_vec.resize(npft, 0);
-	
-	// start reading values into these vectors
+
+	// read agri and barren level ids	
 	while (fin >> s && s != attrbegin){
 		if (s == "") continue;	// skip empty lines
 		if (s == "#") {getline(fin,s,'\n'); continue;}	// skip #followed lines (comments) 
-		if		(s == "LM")	for (int i=0; i<npft; ++i) fin >> LAImax[i];
+		if		(s == "agri_pft") 		fin >> agri_pft_code;
+		else if (s == "barren_pft") 	fin >> barren_pft_code;
+		else if	(s == "LM")	for (int i=0; i<npft; ++i) fin >> LAImax[i];
 		else if (s == "Lm")	for (int i=0; i<npft; ++i) fin >> LAImin[i];
 		else if (s == "aL")	for (int i=0; i<npft; ++i) fin >> aLf[i];
 		else if (s == "aS")	for (int i=0; i<npft; ++i) fin >> aSf[i];
@@ -242,6 +244,8 @@ int read_veg_params_file(){
 		else if (s == "rhobL") 		fin >> rhobL; 
 		else if (s == "theta_sL") 	fin >> theta_sL; 
 	}
+//	cout << "agri = " << agri_pft_code << ", barren = " << barren_pft_code << endl;
+//	for (int i=0; i<npft; ++i) cout << LAImax[i] << " "; cout << endl;
 
 	fin >> s; //cout << "s = " << s << '\n';
 	char c; 

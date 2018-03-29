@@ -10,9 +10,6 @@ extern vector <gVar*> model_variables;
 extern map <string, string> static_var_files; 	// 
 extern int init_modelvar(gVar &v, string var_name, string unit, int nl, vector<double> times_vec, ostream& lfout);
 
-int barren_pft_code = 0;
-int agri_pft_code = 10;
-
 bool train, eval;
 
 DenseNet fireNet;
@@ -191,22 +188,12 @@ int main_run(){
 				// read variables
 				for (int i=0; i<model_variables.size(); ++i){
 					if (static_var_files.find(model_variables[i]->varname) != static_var_files.end()) continue; // variable is static
-					if (model_variables[i]->varname == "ba") continue;
 					if (model_variables[i]->varname == "fire") continue;
 					
-//					if (model_variables[i]->varname == "lmois" || 
-//						model_variables[i]->varname == "dxl" )
-//						model_variables[i]->readVar_reduce_mean(gt0+hms2xhrs("9:0:0"), gtf+hms2xhrs("9:0:0"));
-
-//					else 
-						model_variables[i]->readVar_reduce_mean(gt0, gtf);
+					model_variables[i]->readVar_reduce_mean(gt0, gtf);
 					
 				}			
-				
-				// read burned area
-				if (day<15)	ba.readVar_gt(ymd2gday(yr, mon, 13), 0);
-				else 		ba.readVar_gt(ymd2gday(yr, mon, 27), 0);
-								
+												
 				// write variables in train/eval mode
 				if (train) write_train(yr, mon, day+6);
 				if (eval) write_eval(); 

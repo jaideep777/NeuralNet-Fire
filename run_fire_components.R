@@ -94,6 +94,10 @@ png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/logpop.png"), width =
 par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
 plot.colormap(X=dat_good$lon, Y=dat_good$lat, Z = dat_good$logpop, zlim = c(0,11), col = rainbow(100), cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
 dev.off()
+png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/dxl.png"), width = 400, height = 500)
+par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
+plot.colormap(X=dat_good$lon, Y=dat_good$lat, Z = dat_good$dxl, zlim = c(0,300), col = rainbow(100)[1:50], cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
+dev.off()
 
 pos = which(datf$gfedclass>0)
 neg = which(datf$gfedclass == 0)
