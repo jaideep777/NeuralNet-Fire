@@ -59,11 +59,13 @@ a[5]             <- INCPATH
 a[6]             <- INCPATH2  
 writeLines(a,"Makefile")
 
-system(paste0(lib_paths," && make clean all && ./aggregate train"))
+system(paste0(lib_paths," && make clean all && ./aggregate train ", sim_name))
 
 # clean up aggregated data in R and select forest grids only
 datm = read.delim(paste0(fire_dir, "/fire_aggregateData/",output_dir,"/train_data.txt"), header=T)
-# datm$msk[datm$msk == 0 | is.na(datm$msk)] = NA
+# datm$msk = 1
+if (sim_name == "ssaplus") datm$msk = 1
+datm$msk[datm$msk == 0 | is.na(datm$msk)] = NA
 datm[datm==9.9e20] = NA
 datm = datm[,-length(datm)]
 # datm$ba = datm$ba / 27.75e3^2
@@ -81,27 +83,40 @@ threshold_forest_frac = 0.3
 dat_bad = datm[!complete.cases(datm),]
 dat_good = datm[complete.cases(datm),]
 datf = dat_good[dat_good$forest_frac > threshold_forest_frac,]
+# datf = dat_good
+
+xlim = c(60.5,100.5)
+ylim = c(5,50)
+ptsiz = 9  # 12 for india
 
 png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/lmois.png"), width = 400, height = 500)
 par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
-plot.colormap(X=dat_good$lon, Y=dat_good$lat, Z = dat_good$lmois, zlim = c(0,1), col = rainbow(100), cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
+with( dat_good[dat_good$date == as.Date("2007-01-07"),],
+      plot.colormap(X=lon, Y=lat, Z = lmois, zlim = c(-0.01,1.01), col = rainbow(100), cex = ptsiz, xlim = xlim, ylim = ylim)
+)
 dev.off()
 png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/dft.png"), width = 400, height = 500)
 par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
-plot.colormap1(X=dat_good$lon, Y=dat_good$lat, Z = dat_good$dft, zlim = c(0,11), col = rainbow(12), cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
+with( dat_good[dat_good$date == as.Date("2007-01-07"),],
+      plot.colormap1(X=lon, Y=lat, Z = dft, zlim = c(0,11), col = rainbow(12), cex = ptsiz, xlim = xlim, ylim = ylim)
+)
 dev.off()
 png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/logpop.png"), width = 400, height = 500)
 par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
-plot.colormap(X=dat_good$lon, Y=dat_good$lat, Z = dat_good$logpop, zlim = c(0,11), col = rainbow(100), cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
+with( dat_good[dat_good$date == as.Date("2007-01-07"),],
+      plot.colormap(X=lon, Y=lat, Z = logpop, zlim = c(-0.01,11), col = rainbow(100), cex = ptsiz, xlim = xlim, ylim = ylim)
+)
 dev.off()
 png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/dxl.png"), width = 400, height = 500)
 par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
-plot.colormap(X=dat_good$lon, Y=dat_good$lat, Z = dat_good$dxl, zlim = c(0,300), col = rainbow(100)[1:50], cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
+with( dat_good[dat_good$date == as.Date("2007-01-07"),],
+      plot.colormap(X=lon, Y=lat, Z = dxl, zlim = c(-0.01,300), col = rainbow(100)[1:50], cex = ptsiz, xlim =xlim, ylim = ylim)
+)
 dev.off()
 
-pos = which(datf$gfedclass>0)
-neg = which(datf$gfedclass == 0)
-neg_sub = sample(neg, size = length(pos), replace = F)
+pos = which(datf$baclass>0)
+neg = which(datf$baclass == 0)
+neg_sub = sample(neg, size = 4*length(pos), replace = F)
 
 set.seed(1)
 ids = sample(c(pos, neg_sub), size = length(c(pos, neg_sub)), replace = F) # shuffle indices
@@ -109,8 +124,22 @@ ids = sample(c(pos, neg_sub), size = length(c(pos, neg_sub)), replace = F) # shu
 datf = datf[ids,]
 png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/dft_datf.png"), width = 400, height = 500)
 par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
-plot.colormap1(X=datf$lon, Y=datf$lat, Z = datf$dft, zlim = c(0,11), col = rainbow(12), cex = 12, xlim = c(66.5,100.5), ylim = c(6.5,38.5))
+with( datf[dat_good$date == as.Date("2007-01-07"),],
+      plot.colormap1(X=lon, Y=lat, Z = dft, zlim = c(0,11), col = rainbow(12), cex = ptsiz, xlim = xlim, ylim = ylim)
+)
 dev.off()
+
+plot.cut.means_obs = function(obs, var, min, max, col.obs, col.pred, ...){
+  brks = seq(min,max, length.out=21)
+  cuts = cut(var, breaks = brks, include.lowest = T)
+  plot(x= mids(brks), y=tapply(obs, INDEX = cuts, FUN = mean), col=col.obs, lwd=2, ... ,ylim = c(0,0.020))
+  list(classsizes = tapply(obs, INDEX = cuts, FUN = length), 
+       classvalues = tapply(obs, INDEX = cuts, FUN = mean),
+       class = cuts
+      )
+}
+
+
 
 # datf$baclass = datf$baclass -1
 
@@ -144,10 +173,35 @@ dat_eval = datf_train_full[id_eval, ]
 tt = table(dat_train$dft)
 sample_size = max(tt)
 
+
+# #### Remove spurious values from training set
+# nl = plot.cut.means_obs(obs = dat_train$ba, var = dat_train$lmois, min = 0, max = 1, col.obs = "cyan3", col.pred = "blue", xlab="Fuel moisture", ylab="Burned area")
+# nt = plot.cut.means_obs(obs = dat_train$ba, var = dat_train$ts, min = 250, max = 320, col.obs = "orange2", col.pred = "red", xlab="Fuel moisture", ylab="Burned area")
+# nr = plot.cut.means_obs(obs = dat_train$ba, var = dat_train$rh, min = 0, max = 110, col.obs = "magenta", col.pred = "magenta4", xlab="Rel humidity", ylab="Burned area")
+# nw = plot.cut.means_obs(obs = dat_train$ba, var = dat_train$wsp, min = 0, max = 8, col.obs = rgb(.3,.3,.3), col.pred = rgb(.6,.6,.6), xlab="Wind speed", ylab="Burned area")
+# nh = plot.cut.means_obs(obs = dat_train$ba, var = dat_train$logpop, min = 0, max = 8, col.obs = "goldenrod", col.pred = "goldenrod4", xlab="Log pop density", ylab="Burned area")
+# 
+# dat_train$ba[which(nt$class == names(nt$classsizes[18]) | nt$class == names(nt$classsizes[17]))] = NA
+# dat_train$ba[which(nl$class == names(nl$classsizes[1]))] = NA
+# dat_train = dat_train[complete.cases(dat_train),]
+# 
+# dat_eval$ba[which(dat_eval$lmois < 0.05)] = NA
+# dat_eval$ba[which(dat_eval$ts > 305)] = NA
+# dat_eval = dat_eval[complete.cases(dat_eval),]
+
+
 write.csv(x = dat_train, file=paste0(fire_dir, "/fire_aggregateData/",output_dir,"/train_forest.csv"), row.names = F)
 write.csv(x = dat_eval, file=paste0(fire_dir, "/fire_aggregateData/",output_dir,"/eval_forest.csv"), row.names = F)
 write.csv(x = dat_test, file=paste0(fire_dir, "/fire_aggregateData/",output_dir,"/test_forest.csv"), row.names = F)
 
+
+datz = read.csv(file=paste0(fire_dir, "/fire_aggregateData/",output_dir,"/train_forest.csv"), header = T)
+png(paste0(fire_dir, "/fire_aggregateData/output",suffix,"/lmois_datz.png"), width = 400, height = 500)
+par(mfrow = c(1,2), cex.lab=1.2, cex.axis=1.2)
+with( datz, #[as.Date(datz$date) == as.Date("2007-01-07"),],
+      plot.colormap(X=lon, Y=lat, Z = lmois, zlim = c(-0.01,1.01), col = rainbow(100), cex = ptsiz, xlim = xlim, ylim = ylim)
+)
+dev.off()
 
 #### Stage 3 ####
 # tensor flow (learn NN model)
@@ -155,7 +209,7 @@ write.csv(x = dat_test, file=paste0(fire_dir, "/fire_aggregateData/",output_dir,
 # tensorflow parameters
 learn_rate         <- 0.005
 batch_size         <- 5000
-n_steps            <- 5000
+n_steps            <- 2500
 
 setwd(paste0(fire_dir,"/fire_tensorflow"))
 c               <- readLines("nn_const_data_fire_v4.py")
@@ -180,7 +234,7 @@ system("sed -i -e 's/\\,/ /g' weights_ba.txt")
 # agrregate (evaluates NN on nc files to generate fire nc file)
 
 setwd(paste0(fire_dir,"/fire_aggregateData"))
-system(paste0(lib_paths," && make clean all && ./aggregate eval"))
+system(paste0(lib_paths," && ./aggregate eval ", sim_name))
 
 
 #### Stage 5 #### 

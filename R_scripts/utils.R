@@ -35,6 +35,12 @@ createPalette <- function(cols, values, n=100){
   cols1
 }
 
+plot.colorbar <- function(cols, values, n=1000, log=""){
+  cols = createPalette(cols,values,n)
+  vals = seq(values[1], values[length(values)], length.out = 1000)
+  image(x=log(vals), y=1, z=matrix(data = vals, ncol=1), zlim = c(values[1], values[length(values)]), col = cols, xaxt="n")
+  axis(side = 1, labels = (vals[seq(1,n,length.out = 10)]), at = log(vals[seq(1,n,length.out = 10)]))
+}
 
 addTrans <- function(color,trans)
 {
@@ -179,6 +185,8 @@ read.fireData = function(dataset, dir){
   ba_classes = c(0,2^(seq(log2(2^0), log2(2^10), length.out=11)))/1024
   ba_classes_mids = c(0, 0.5/1024, sqrt(ba_classes[3:length(ba_classes)-1]*ba_classes[3:length(ba_classes)]))
   datf$ba.pred = apply(X=daty, MARGIN=1, FUN=function(x){sum(ba_classes_mids*x)})
+  datf$ba.pred = datf$ba.pred - 0.001
+  datf$ba.pred[datf$ba.pred < 0] = 0;
   datf$baclass_pred = sapply(datf$ba.pred,FUN = function(x){length(which(x>ba_classes))})
   
   datf  
@@ -194,6 +202,7 @@ read.fireData_gfed = function(dataset, dir){
   ba_classes = c(0,2^(seq(log2(2^0), log2(2^10), length.out=11)))/1024
   ba_classes_mids = c(0, 0.5/1024, sqrt(ba_classes[3:length(ba_classes)-1]*ba_classes[3:length(ba_classes)]))
   datf$ba.pred = apply(X=daty, MARGIN=1, FUN=function(x){sum(ba_classes_mids*x)})
+  datf$ba.pred[datf$ba.pred < 0.002] = 0;
   datf$baclass_pred = sapply(datf$ba.pred,FUN = function(x){length(which(x>ba_classes))})
   
   datf$ba = datf$gfed

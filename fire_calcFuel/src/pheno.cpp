@@ -197,7 +197,8 @@ int calc_pheno(float gtime, float delT){
 			for (int i=0; i<npft; ++i){
 				float bio_shed = ls_rates[i]/hrsPerMonth*delT;	// gm/m2/month * months/hr * hrs
 				canbio(ilon, ilat, i) -= bio_shed;
-				if (i != agri_pft_code) dxl(ilon, ilat, 0) += bio_shed; // exclude agricultural litter from dxl
+				if (i != agri_pft_code) 
+				dxl(ilon, ilat, 0) += bio_shed; // exclude agricultural litter from dxl
 			}
 
 			// decay litter (dry decay rates for prerun)

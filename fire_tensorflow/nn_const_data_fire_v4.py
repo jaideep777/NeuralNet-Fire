@@ -19,8 +19,8 @@ if sim_name != '':
 
 
 __learn_rate = 0.005
-__batch_size = 1000
-__n_steps = 5000
+__batch_size = 5000
+__n_steps = 2500
 
 n_classes = 12
 
@@ -37,8 +37,8 @@ ID_lmois 	= 14
 ID_ba		= 19 # 19 for georgia, 20 for gfed4
 ID_pop		= 22
 	
+#X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
 X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
-#X_ids = [ID_ts, ID_wsp, ID_dxl]
 n_inputs = len(X_ids)
 
 # functions to initialize weights and biases

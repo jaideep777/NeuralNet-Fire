@@ -2,7 +2,14 @@
 # source(paste0(fire_dir,"/R_scripts/utils.R"))
 #### PREDICTED FIRES - CALIBRATION ####
 
+sim_name           <- "ssaplus"
+suffix = ""
+if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
+output_dir = paste0("output",suffix)
+
 dataset = "eval"
+system("mkdir figures")
+
 
 # datf = read.csv(file = paste0("/home/jaideep/codes/FIRE_CODES/fire_tensorflow/",dataset,"_forest_.csv"))
 # 
@@ -40,7 +47,7 @@ datf = read.fireData(dataset = dataset, dir=paste0(fire_dir, "/fire_aggregateDat
 
 # setwd(paste0("/home/jaideep/codes/FIRE_CODES/figures/",dataset))
 
-plot_calib = function(datf, name, min=1e-4, max=1e-1){
+plot_calib = function(datf, name, min=1e-3, max=1e-1){
   insuff_data = which(table(datf$baclass_pred)<5)
   for (i in 1:length(insuff_data)){
     datf$baclass_pred[datf$baclass_pred == insuff_data[i]] = NA
@@ -60,21 +67,24 @@ plot_calib = function(datf, name, min=1e-4, max=1e-1){
   
   #a = summary(lm(obs_ba.predc~pred_ba.predc))
   #mtext(text = sprintf("r = %.2f", a$adj.r.squared), cex=1.5, side=3, adj = 0.1, padj = 2)
-  r2 = 1-sum(log(obs_ba.predc)-log(pred_ba.predc))^2/var(log(obs_ba.predc))/(length(log(obs_ba.predc))-1)
-  mtext(text = sprintf("r2 = %.2f", r2), cex=1., side=3, adj = 0.1, padj = 2)
-
-  mtext(col="blue",text = paste(name, "(n = ", nrow(datf),", obs = ",sprintf("%.2f",sum(datf$ba)*27.75e3^2*1e-10), " Mha, pred = ",sprintf("%.2f",sum(datf$ba.pred)*27.75e3^2*1e-10)," Mha)"), cex=1.1, side=3, adj = -0., padj = -1.5)  
+  nmse = 1-sum(log(obs_ba.predc[-1])-log(pred_ba.predc[-1]))^2/var(log(obs_ba.predc[-1]))/(length(obs_ba.predc[-1])-1)
+  r = cor(obs_ba.predc, pred_ba.predc)
+  mtext(text = sprintf("E = %.2f", nmse), cex=1., side=3, adj = 0.1, padj = 2, col="blue")
+  mtext(text = sprintf("r = %.2f", r), cex=1., side=3, adj = 0.1, padj = 4, col="blue")
+  
+  mtext(col="blue",text = paste(name, "(n = ", nrow(datf),", obs = ",sprintf("%.2f",sum(datf$ba)*55.5e3^2*1e-10), " Mha, pred = ",sprintf("%.2f",sum(datf$ba.pred)*55.5e3^2*1e-10)," Mha)"), cex=1.1, side=3, adj = -0., padj = -1.5)  
   
   plot(f(datf$ba)~f(datf$ba.pred), pch=20, cex=0.2, xlab = "Predicted BA", ylab = "Observed BA", xlim=c(0,0.02), ylim=c(0,0.02))
-  abline(lm(f(datf$ba)~f(datf$ba.pred)-1), lwd=3)
+  abline(lm(f(datf$ba)~f(datf$ba.pred)), lwd=3)
   # abline(lm((datf$ba)~f(datf$ba.pred)), col="grey", lwd=3) 
   abline(0,1, col="red", lwd=2)
   
   b = summary(lm(datf$ba~datf$ba.pred))
-  r2_act = 1-sum(f(datf$ba)-f(datf$ba.pred))^2/var(f(datf$ba))/(length(datf$ba)-1)
-  
+  nmse_act = 1-sum(f(datf$ba)-f(datf$ba.pred))^2/var(f(datf$ba))/(length(datf$ba)-1)
+  r_act = cor(datf$ba, datf$ba.pred)
   # mtext(text = sprintf("r = %.2f", b$adj.r.squared), cex=1.5, side=3, adj = 0.1, padj = 2)
-  mtext(text = sprintf("r2 = %.2f", r2_act), cex=1., side=3, adj = 0.1, padj = 2)
+  mtext(text = sprintf("E = %.2f", nmse_act), cex=1., side=3, adj = 0.1, padj = 2, col="blue")
+  mtext(text = sprintf("r = %.2f", r_act), cex=1., side=3, adj = 0.1, padj = 4, col="blue")
   # mtext(text = sprintf("Tot Obs  = %.2f Mha", sum(datf$ba)*27.75e3^2*1e-10), cex=1., side=3, adj = 0.1, padj = 4)
   # mtext(text = sprintf("Tot Pred = %.2f Mha", sum(datf$ba.pred)*27.75e3^2*1e-10), cex=1., side=3, adj = 0.1, padj = 5.5)
 
@@ -141,11 +151,17 @@ plot.niche = function(datf, name="", max.baclass=10){
   plot(datf$lmois~datf$dxl, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlab = "Fuel mass", ylab="Fuel Moisture")
   points(datf$lmois~datf$dxl, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
   
+  # plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlim=c(270-273.16,320-273.16), xlab = "Temperature", ylab="Rel Humidity")
+  # points(datf$rh~datf$ts, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
+  # plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlim=c(270-273.16,320-273.16), xlab = "Temperature", ylab="Rel Humidity")
+  # points(datf$rh~datf$ts, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
+
   plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlim=c(270,320), xlab = "Temperature", ylab="Rel Humidity")
   points(datf$rh~datf$ts, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
   plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlim=c(270,320), xlab = "Temperature", ylab="Rel Humidity")
   points(datf$rh~datf$ts, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
   
+    
   plot(datf$ts~datf$wsp, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlab = "Wind speed", ylab="Temperature")
   points(datf$ts~datf$wsp, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
   plot(datf$ts~datf$wsp, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlab = "Wind speed", ylab="Temperature")
@@ -192,7 +208,7 @@ plot.niche = function(datf, name="", max.baclass=10){
 # plot(tapply(datf$ba, INDEX = cut(datf$agri_frac, breaks = seq(0,1, by=.01)), FUN = mean), col="orange2", lwd=2, ylab="Burned area", xlab="Temperature")
 # points(tapply(datf$ba.pred, INDEX = cut(datf$agri_frac, breaks = seq(0,1, by=.01)), FUN = mean), type="l", lwd=2, col="red")
 # 
-setwd(paste0(fire_dir,"/figures",suffix))
+setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix,"/figures" ))
 
 iX   = 0
 iAGR = 1
@@ -211,27 +227,29 @@ iMX  = 8
 pfts_ssaplus = c(0, 1, 6, 10, 2, 7, 9, 11)
 pftnames_ssaplus = c("Barren", "NLE", "SCX", "AGR", "BLE", "MD", "GR", "MX")
 
-model = "full"
-for (i in 1:length(pfts_ssaplus)){ 
-  plot.niche(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
-}
+# model = "full"
+# for (i in 1:length(pfts_ssaplus)){ 
+#   plot.niche(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
+# }
 plot.niche(datf, "ALL")  # MIXED
 
-png(filename = "PFTwise_1.png", width = 300*6, height = 500*6, res=300)
-par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
-for (i in 1:4){
-  plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
-}
-dev.off()
-
-png(filename = "PFTwise_2.png", width = 300*6, height = 500*6, res=300)
-par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
-for (i in 5:8){
-  plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
-}
-dev.off()
+# png(filename = "PFTwise_1.png", width = 300*6, height = 500*6, res=300)
+# par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
+# for (i in 1:4){
+#   plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
+# }
+# dev.off()
+# 
+# png(filename = "PFTwise_2.png", width = 300*6, height = 500*6, res=300)
+# par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
+# for (i in 5:8){
+#   plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
+# }
+# dev.off()
 
 png(filename = "calib_all.png", width = 300*6, height = 500*6, res=300)
 par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
 plot_calib(datf, "ALL")  # MIXED
 dev.off()
+
+

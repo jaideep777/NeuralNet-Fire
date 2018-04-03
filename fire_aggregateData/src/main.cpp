@@ -19,6 +19,7 @@ ofstream train_fout;
 float fire_classes_mids[] = {0, 1, 2, 8, 32, 128, 512, 1024};
 float ba_classes_mids[] = {0.000000,   0.500000,   1.414214,   2.828427,   5.656854,  11.313708,  22.627417,  45.254834,  90.509668, 181.019336, 362.038672, 724.077344};
 
+string tres = "fortnightly";
 
 void init_train(){
 	cout << "> Running in TRAIN mode." << endl;
@@ -54,8 +55,15 @@ void init_eval(){
 	}
 	
 	int nmonths = (gday_tf - gday_t0 + 1 + 0.5)/365.2524*12; 
-	vector <double> tvec(2*nmonths);
-	for (int i=0; i<2*nmonths; ++i) tvec[i] = (gday_t0+6 + i*365.2524/12/2 - gday_tb)*24.0;
+	vector <double> tvec;
+	if (tres == "fortnightly"){
+		tvec.resize(2*nmonths);
+		for (int i=0; i<2*nmonths; ++i) tvec[i] = (gday_t0+6 + i*365.2524/12/2 - gday_tb)*24.0;
+	}
+	else if (tres == "monthly"){
+		tvec.resize(nmonths);
+		for (int i=0; i<nmonths; ++i) tvec[i] = (gday_t0+14 + i*365.2524/12 - gday_tb)*24.0;
+	}
 	init_modelvar( fire,  "fire",  "-",  1, tvec, log_fout); 
 
 	string fname = out_dir+"/fire."+sim_date0+"-"+sim_datef+".nc";
@@ -170,16 +178,23 @@ int main_run(){
 	int monf = gt2month(gday_tf);
 	cout << "> Aggregation will run from " << yr0 << "-" << mon0 << " ---> " << yrf << "-" << monf << endl;
 
+	int daystep = 0;
+	if (tres == "monthly") daystep = 30.5;
+	else if (tres == "fortnightly") daystep = 15;
+
 	for (int yr = yr0; yr <= yrf; ++yr){
 		for (int mon = mon0; mon <= monf; ++mon){
-			for (int day = 1; day < 30; day+=15){
+			for (int day = 1; day < 30; day+=daystep){
 			
 				if (yr == yrf && mon == monf) continue; 
 
 				// construct range
 				double gt0, gtf;
 				
-				double end_day = (day<15)? 16 : daysInMonth(yr,mon)+1;
+				double end_day;
+				if (tres == "fortnightly") 	end_day = (day<15)? 16 : daysInMonth(yr,mon)+1;
+				else if (tres == "monthly") end_day = daysInMonth(yr,mon)+1;
+
 				gt0 = ymd2gday(yr,mon, day) + hms2xhrs("0:0:0");
 				gtf = ymd2gday(yr,mon, end_day) + hms2xhrs("0:0:0") - 1.0/24;
 

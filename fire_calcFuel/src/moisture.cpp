@@ -15,10 +15,10 @@ int calc_ndr(double gt){
 	int doy = gt2dayOfYear(gt);
 
 	ndr.readVar_it(doy);
-	cld.readVar_gt(gt,0);
+	cld.readVar_gt(gt+14,0);
 	pr.readVar_gt(gt,0);
 	rh.readVar_gt(gt,0);
-	ts.readVar_gt(gt,0);
+	ts.readVar_gt(gt+14,0);	 // +14 for montly cru data
 	wsp.readVar_gt(gt,0);
 //	ffev.readVar_gt(gt,0);
 	
@@ -79,7 +79,7 @@ int calc_moisture(){
 			
 				// get all variables in the right units
 				float Rn  = ndr(ilon,ilat,0)*0.0864;	// convert Rn from W/m2 to MJ/day/m2
-				float T   = ts(ilon,ilat,0) - 273.16;	// ts in degC
+				float T   = ts(ilon,ilat,0); // - 273.16;	// ts in degC
 				float RH  = rh(ilon,ilat,0)/100;	 	// rh (0-1)
 				float U   = wsp(ilon,ilat,0);			// wsp in m/s
 				float Ps  = ps(ilon,ilat,0)/1000; 		// ps in kPa
@@ -103,9 +103,14 @@ int calc_moisture(){
 				for (int i=0; i<npft; ++i){
 
 					// calculate LAI = canbio/canbiomax * LAImax
-					lai = LAImax[i]*canbio(ilon,ilat,i)/(canbio_max(ilon,ilat,i)+1e-6);	// avoid NaN
-					
-					Wc_sat += Wc_sat_vec[i]*lai*vegtype(ilon,ilat,i);
+					if (canbio(ilon,ilat,i) < canbio_max(ilon,ilat,i))
+						lai = LAImax[i]*canbio(ilon,ilat,i)/(canbio_max(ilon,ilat,i)+1e-6);	// avoid NaN
+					else 
+						lai = LAImax[i];
+
+						
+					if (i != agri_pft_code)
+					Wc_sat += Wc_sat_vec[i]*lai*vegtype(ilon,ilat,i);	// calculate total water holding capacity of canopy
 
 					// R = Watts reaching canopy of i'th PFT, will be intercepted by canopy
 					//   = R(W/m2)* f * acell(m2)
@@ -134,15 +139,15 @@ int calc_moisture(){
 			
 				// Water balance for canopy
 				float Wc = cmois(ilon, ilat, 0);		// mm		
-				float beta_c = Wc/(Wc_sat*(1+lai));				// Wc_sat (mm = kg/m2 / leaf layer)		
+				float beta_c = Wc/(Wc_sat+1e-6);		// Wc_sat (mm = kg/m2)		
 				Wc += (pr_c - Ep_c*beta_c)/24.0f*dt;	// mm/day * days/hr *dt = mm/hr*dt = mm (in this timestep)
+				if (Wc < 0) Wc = 0;
 				
 				float Dc = 0; // drain from canopy in (mm/day) 
-				if (Wc >= Wc_sat*(1+lai)){
-					Dc = (Wc - Wc_sat*(1+lai))*24.0/dt;
-					Wc = Wc_sat*(1+lai);
+				if (Wc >= Wc_sat){
+					Dc = (Wc - Wc_sat)*24.0/dt;
+					Wc = Wc_sat;
 				}
-				if (Wc < 0) Wc = 0;
 				
 				// water balance for litter (depends on litter thickness)
 				float S = lmois(ilon,ilat,0);
