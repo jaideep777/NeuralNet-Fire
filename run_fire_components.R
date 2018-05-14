@@ -6,7 +6,7 @@ sim_name           <- "ssaplus"
 # Directories to the fire model folder
 fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
 tensorflow_act_dir <- "/home/jaideep/tensorflow"	# tensorflow virtual env dir
-libgsm_dir         <- "/home/jaideep/codes/FIRE_CODES/libgsm_v2" # libgsm dir
+libgsm_dir         <- "/home/jaideep/codes/libgsm_v3" # libgsm dir
 
 # lib directories
 ncxx_legacy_dir    <- "/usr/local/netcdf-cxx-legacy" 

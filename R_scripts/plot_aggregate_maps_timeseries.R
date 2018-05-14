@@ -13,9 +13,9 @@ setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
 system("mkdir figures")
 
 # SSAPLUS
-system("/usr/local/cdo/bin/cdo ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
-system("/usr/local/cdo/bin/cdo selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
-system("/usr/local/cdo/bin/cdo monmean -selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
+system("/usr/local/cdo-1.6.7/bin/cdo ifthen /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
+system("/usr/local/cdo-1.6.7/bin/cdo selyear,2007/2015 -ifthen /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /media/jaideep/WorkData/Fire_G/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
+system("/usr/local/cdo-1.6.7/bin/cdo monmean -selyear,2007/2015 -ifthen /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /media/jaideep/WorkData/Fire_G/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
 
 # ## India
 # system("/usr/local/cdo-1.6.7/bin/cdo ifthen /media/jaideep/WorkData/Fire_G/forest_type/IIRS/netcdf/ftmask_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
@@ -71,7 +71,7 @@ cols = createPalette(c("black", "blue","green3","yellow","red"),c(0,25,50,100,10
 cols = createPalette(c("black", "black", "black","blue","mediumspringgreen","yellow","orange", "red","brown"),c(0,0.2,0.5,1,2,5,10,20,50,100)*1000, n = 1000)
 cols = createPalette(c("black", "blue4", "blue", "skyblue", "cyan","mediumspringgreen","yellow","orange", "red","brown"),c(0,0.2,0.5,1,2,5,10,20,50,100)*1000, n = 1000) #gfed 
 
-png(filename = paste0("figures/all_seasons", "(",model,").png"),res = 300,width = 600*3,height = 460*3) # 520 for sasplus, india
+png(filename = paste0("figures/all_seasons", "(",model,").png"),res = 300,width = 600*3,height = 520*3) # 520 for sasplus, india, 460 for SAS
 layout(matrix(c(1,1,
                 1,1,
                 # 2,3,

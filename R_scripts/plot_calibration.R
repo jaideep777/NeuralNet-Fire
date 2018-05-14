@@ -2,7 +2,7 @@
 # source(paste0(fire_dir,"/R_scripts/utils.R"))
 #### PREDICTED FIRES - CALIBRATION ####
 
-sim_name           <- "sas"
+sim_name           <- "ssaplus"
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)

@@ -132,7 +132,7 @@ vector <float> calc_litterfall_rate(double gtime, vector <float> &canbio_now, fl
 			}
 			else{	// no leafless month, i.e. evergreen tree
 				// shed leaves at 1st order rate
-				ls_rates[i] = 1/(leafLs[i]*12)*canbio_now[i];	// per month. 
+				ls_rates[i] = 1/(leafLs[i]*3)*canbio_now[i];	// per month. Typically shedding phase is ~3 months
 			}
 		}
 		// evergreen tree in E phase

@@ -1,7 +1,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
-#from tensorflow.data import Dataset, Iterator
+from tensorflow.contrib.data import Dataset, Iterator
 import numpy as np
 from numpy import genfromtxt
 import sys
@@ -58,7 +58,7 @@ def bias_variable(shape):
 
 
 def create_dataset(filename, map_fun, batch_size, rep=1, buffer_size=0):
-  dat = tf.data.TextLineDataset(filename)
+  dat = tf.contrib.data.TextLineDataset(filename)
   dat = dat.skip(1)
   dat = dat.map(map_fun) 
   dat = dat.repeat(rep)
@@ -137,17 +137,17 @@ print(tf.Session().run(xtest[0:5,:]))
 print("--------------")
 	
 
-dat_train = tf.data.Dataset.from_tensor_slices((xin,yin))
+dat_train = tf.contrib.data.Dataset.from_tensor_slices((xin,yin))
 dat_train = dat_train.repeat(10000)
 dat_train = dat_train.shuffle(100000)
 dat_train = dat_train.batch(__batch_size)
 
-#dat_valid = tf.data.Dataset.from_tensor_slices((xeval,yeval))
+#dat_valid = tf.contrib.data.Dataset.from_tensor_slices((xeval,yeval))
 
 ## prepare data iterator
 it_handle = tf.placeholder(tf.string, shape=[])
 
-iterator = tf.data.Iterator.from_string_handle(it_handle, dat_train.output_types, dat_train.output_shapes)
+iterator = Iterator.from_string_handle(it_handle, dat_train.output_types, dat_train.output_shapes)
 
 next_batch = iterator.get_next()
 
@@ -266,8 +266,7 @@ with tf.Session() as sess:
   sys.stdout = f
 
   print(1)
-  print([n_inputs,nn_h1,n_classes])
-  print("\n")
+  print([n_inputs,nn_h1,n_classes], "\n")
   
   print(Wi)	
   print("\n")

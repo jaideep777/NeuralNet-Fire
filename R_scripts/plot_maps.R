@@ -49,12 +49,12 @@ diffuse = function(mat, D, nt){
 }
 
 
-seasons = list(FMAM = c(2,3,4,5), JJAS = c(6,7,8,9), ON = c(10,11,12))
+seasons = list(FMAM = c(2,3,4,5), JJAS = c(6,7,8,9), ON = c(10,11,12,1))
 names = c("summer", "monsoon", "postmonsoon_winter")
-seasmonths = c("FMAM", "JJAS", "OND")
+seasmonths = c("FMAM", "JJAS", "ONDJ")
 
 for (sea in 1:length(seasons)){
-  png(filename = paste0(names[sea], "(",model,").png"),res = 300,width = 1200,height = 2700) # 2700 for ssaplus, india, 2200 for SAS
+  png(filename = paste0("figures/", names[sea], "(",model,").png"),res = 300,width = 1200,height = 2700) # 2700 for ssaplus, india, 2200 for SAS
   # layout(matrix(c(1,2,3,4,5,6,7,8),2,4,byrow = F))  # horizontal
   layout(matrix(c(1,2,3,4,5,6,7,8),4,2,byrow = T))  # vertical
   par(mar=c(4,4,3,1), oma=c(1,2,6,2), cex.lab=3, cex.axis=1.5)

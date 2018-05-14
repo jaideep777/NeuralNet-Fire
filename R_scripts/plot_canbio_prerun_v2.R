@@ -1,7 +1,7 @@
 #### PLOT PRERUN ####
 fire_dir = "/home/jaideep/codes/FIRE_CODES"
 
-dat = read.csv(file = paste0(fire_dir,"/fire_calcFuel/output_ssaplus_good/point_run.txt"), sep="\t",header=T, skip=4)
+dat = read.csv(file = paste0(fire_dir,"/fire_calcFuel/output_ssaplus/point_run.txt"), sep="\t",header=T, skip=4)
 
 plot.canbio = function(y,x, label, col.pr="green3", col.main="black", col.pr1="green4"){
   plot(y~x, type="l", ylab=label, xaxt="n", col=col.main)
