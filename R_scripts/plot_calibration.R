@@ -2,7 +2,7 @@
 # source(paste0(fire_dir,"/R_scripts/utils.R"))
 #### PREDICTED FIRES - CALIBRATION ####
 
-sim_name           <- "ssaplus"
+sim_name           <- "sas"
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)
@@ -141,7 +141,7 @@ plot_calib = function(datf, name, min=1e-3, max=1e-1){
 
 #### Pred and obs phase plots with BA ####
 
-plot.niche = function(datf, name="", max.baclass=10){
+plot.niche = function(datf, name="", max.baclass=11){
   png(filename = paste0("niche(",model,"_",name,").png"), width = 400*3, height = 500*3, res = 300)
   
   par(mfrow = c(3,2), mar=c(4,5,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
@@ -233,23 +233,24 @@ pftnames_ssaplus = c("Barren", "NLE", "SCX", "AGR", "BLE", "MD", "GR", "MX")
 # }
 plot.niche(datf, "ALL")  # MIXED
 
-# png(filename = "PFTwise_1.png", width = 300*6, height = 500*6, res=300)
-# par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
-# for (i in 1:4){
-#   plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
-# }
-# dev.off()
-# 
-# png(filename = "PFTwise_2.png", width = 300*6, height = 500*6, res=300)
-# par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
-# for (i in 5:8){
-#   plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
-# }
-# dev.off()
-
 png(filename = "calib_all.png", width = 300*6, height = 500*6, res=300)
 par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
 plot_calib(datf, "ALL")  # MIXED
 dev.off()
+
+png(filename = "PFTwise_1.png", width = 300*6, height = 500*6, res=300)
+par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
+for (i in 1:4){
+  plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
+}
+dev.off()
+
+png(filename = "PFTwise_2.png", width = 300*6, height = 500*6, res=300)
+par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
+for (i in 5:8){
+  plot_calib(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
+}
+dev.off()
+
 
 

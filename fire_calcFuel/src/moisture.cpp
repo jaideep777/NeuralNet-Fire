@@ -13,13 +13,17 @@ using namespace std;
 int calc_ndr(double gt){ 
 
 	int doy = gt2dayOfYear(gt);
+	int mon = gt2month(gt)-1;
 
 	ndr.readVar_it(doy);
-	cld.readVar_gt(gt+14,0);
+	cld.readVar_gt(gt,0);  // add +14 to gt for monthly cru data
 	pr.readVar_gt(gt,0);
 	rh.readVar_gt(gt,0);
-	ts.readVar_gt(gt+14,0);	 // +14 for montly cru data
+	ts.readVar_gt(gt,0);	 // add +14 to gt for montly cru data
 	wsp.readVar_gt(gt,0);
+	albedo.readVar_it(mon);	
+
+
 //	ffev.readVar_gt(gt,0);
 	
 	for (int ilat=0; ilat<mgnlats; ++ilat){
@@ -35,7 +39,11 @@ int calc_ndr(double gt){
 				float ndr_net = ndr(ilon,ilat,0);			// downward SW radiation (unabsorbed)
 				ndr_net *= (1-cld(ilon,ilat,0)/100*0.6); 		// absorption/reflection by clouds
 				ndr_net = ndr_net*(1-pow(rhum/100,.5)/5);	// absorption by water vapour 
-				ndr_net *= (1-albedo(ilon,ilat,0)/100);		// reflected by surface albedo
+				
+				float albedo1 = albedo(ilon,ilat,0);
+				if (albedo1 > 1) albedo1 = 1;
+				if (albedo1 < 0) albedo1 = 0;
+				ndr_net *= (1-albedo1);		// reflected by surface albedo
 			
 				ndr(ilon,ilat,0) = fmax(ndr_net - 100, 0); // 100 is lw_in - lw_out
 
@@ -72,14 +80,14 @@ int calc_moisture(){
 				lmois(ilon,ilat,0) == lmois.missing_value  ||
 				cmois(ilon,ilat,0) == cmois.missing_value  )
 			{
-				lmois(ilon,ilat,0) = lmois.missing_value;
-				cmois(ilon,ilat,0) = cmois.missing_value;
+//				lmois(ilon,ilat,0) = lmois.missing_value;
+//				cmois(ilon,ilat,0) = cmois.missing_value;
 			}
 			else{
 			
 				// get all variables in the right units
 				float Rn  = ndr(ilon,ilat,0)*0.0864;	// convert Rn from W/m2 to MJ/day/m2
-				float T   = ts(ilon,ilat,0); // - 273.16;	// ts in degC
+				float T   = ts(ilon,ilat,0) - 273.16;	// ts in degC (note CRU is already in degC)
 				float RH  = rh(ilon,ilat,0)/100;	 	// rh (0-1)
 				float U   = wsp(ilon,ilat,0);			// wsp in m/s
 				float Ps  = ps(ilon,ilat,0)/1000; 		// ps in kPa

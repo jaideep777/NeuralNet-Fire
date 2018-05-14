@@ -1,7 +1,7 @@
 #### SINGLE POINT OUTPUT ####
 
 # plot(dat$npp~as.Date(dat$date), type="l")
-dat = read.csv(file = paste0("/home/jaideep/codes/FIRE_CODES/fire_calcFuel/output",sim_name,"/point_run.txt"), sep="\t",header=T, skip=4)
+dat = read.csv(file = paste0("/home/jaideep/codes/FIRE_CODES/fire_calcFuel/output_",sim_name,"/point_run.txt"), sep="\t",header=T, skip=4)
 
 daty = read.delim("/home/jaideep/codes/FIRE_CODES/fire_tensorflow/y_predic_ba.txt", header=F, sep=" ")
 # nfires_classes = c(0,1,sqrt(fire_classes[2:length(fire_classes)]* c(fire_classes[3:length(fire_classes)])))

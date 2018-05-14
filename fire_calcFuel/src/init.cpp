@@ -312,6 +312,8 @@ int init_modelvar(gVar &v, string var_name, string unit, int nl, vector<double> 
 	v.lwrite = writeVar_flags[var_name];	
 	v.lwriteSP = writeVarSP_flags[var_name] & spout_on;
 	
+	v.setRegriddingMethod("bilinear");
+	
 	// add gVar to model variables list
 	model_variables.push_back(&v);
 
@@ -378,6 +380,7 @@ int init_vars(){
 	INIT_IP_MODELVAR( wsp, 1); //   "wsp",  ip_data_map["wsp"].unit,  1, mgtimes, log_fout); 
 //	INIT_IP_MODELVAR( ffev,1); //   "ffev", ip_data_map["ffev"].unit, 1, mgtimes, log_fout); 
 	INIT_IP_MODELVAR( cld, 1); //   "cld",  ip_data_map["cld"].unit,  1, mgtimes, log_fout); 
+	INIT_IP_MODELVAR( albedo, 1); //   "cld",  ip_data_map["cld"].unit,  1, mgtimes, log_fout); 
 	
 	#define INIT_MODELVAR(x, unit, nl)  init_modelvar(x,  #x,  unit,  nl, mgtimes, log_fout)
 	INIT_MODELVAR( canbio,      "gC/m2",  npft);  //, mgtimes, log_fout); 
@@ -392,7 +395,7 @@ int init_vars(){
 	vector <double> tsnap(1, (ymd2gday("2009-1-1")-gday_tb)*24);	// single time snapshot
 	init_modelvar( msk,         "msk",        "-",         1, tsnap, log_fout); 
 	init_modelvar( elev,        "elev",       "m",         1, tsnap, log_fout); 
-	init_modelvar( albedo,      "albedo",     "-",         1, tsnap, log_fout); 
+//	init_modelvar( albedo,      "albedo",     "-",         1, tsnap, log_fout); 
 	init_modelvar( vegtype,     "vegtype",    "-",      npft, tsnap, log_fout); 
 
 

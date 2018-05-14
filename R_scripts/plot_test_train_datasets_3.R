@@ -113,7 +113,7 @@ r = cor(ts_obs_eval, ts_pred_eval)
 add_label(0.00, 0.15, label = sprintf("R (eval) = %.2f", r), cex=1.5, pos=4)
 
 
- plot.relations(dat.ag_train, "Training")
+plot.relations(dat.ag_train, "Training")
 
 
 # add_label(0.00, 0.3, label =p, cex=1.5, pos=4.2)

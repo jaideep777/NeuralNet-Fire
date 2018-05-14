@@ -1,13 +1,13 @@
 # makefile for fire model
 
 TARGET = fire
-LIBPATH = -L/usr/local/netcdf-cxx-legacy/lib -L/home/jaideep/codes/FIRE_CODES/libgsm_v2/lib
-INCPATH = -I/usr/local/netcdf-c-4.3.2/include -I/usr/local/netcdf-cxx-legacy/include
-INCPATH += -I/home/jaideep/codes/FIRE_CODES/libgsm_v2/include
+LIBPATH = -L/usr/local/netcdf-cxx-legacy/lib -L/home/jaideep/codes/libgsm_v3/lib
+INCPATH = -I/usr/local/netcdf-c/include -I/usr/local/netcdf-cxx-legacy/include
+INCPATH += -I/home/jaideep/codes/libgsm_v3/include
 LDFLAGS =  
 CPPFLAGS = -g
 
-LIBS = -l:libgsm.so.2 -lnetcdf_c++
+LIBS = -l:libgsm.so.3 -lnetcdf_c++
 
 SOURCEDIR = src
 BUILDDIR = build

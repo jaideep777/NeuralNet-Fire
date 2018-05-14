@@ -65,6 +65,7 @@ system(paste0(lib_paths," && make clean all && ./aggregate train ", sim_name))
 datm = read.delim(paste0(fire_dir, "/fire_aggregateData/",output_dir,"/train_data.txt"), header=T)
 # datm$msk = 1
 if (sim_name == "ssaplus") datm$msk = 1
+if (sim_name == "sas") datm$msk = 1
 datm$msk[datm$msk == 0 | is.na(datm$msk)] = NA
 datm[datm==9.9e20] = NA
 datm = datm[,-length(datm)]
@@ -234,18 +235,28 @@ system("sed -i -e 's/\\,/ /g' weights_ba.txt")
 # agrregate (evaluates NN on nc files to generate fire nc file)
 
 setwd(paste0(fire_dir,"/fire_aggregateData"))
-system(paste0(lib_paths," && ./aggregate eval ", sim_name))
+system(paste0(lib_paths," && make && ./aggregate eval ", sim_name))
 
 
 #### Stage 5 #### 
 # Plot maps and calibration plots
 
 setwd(fire_dir)
-source("R_scripts/plot_canbio_prerun_v2.R")
-source("plot_calibration.R")
-source("plot_maps.R")
+source("R_scripts/plot_aggregate_maps_timeseries.R")
+setwd(fire_dir)
+source("R_scripts/plot_calibration.R")
+setwd(fire_dir)
+source("R_scripts/plot_test_train_datasets_3.R")
 
 
+# source("R_scripts/plot_canbio_prerun_v2.R")
+# source("plot_maps.R")
+
+
+setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
+sim = "full-1"
+system(paste0("mkdir ",sim))
+system(paste0("mv figures y_predic* weights_ba.txt fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc ",sim))
 
 
 

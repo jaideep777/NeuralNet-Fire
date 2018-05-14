@@ -142,14 +142,14 @@ int read_ip_params_file(){
 		else if (s == "dlon")	mgdlon = str2float(u);
 	}
 
-	fin >> s; 
-	if (s != "OUTPUT_FILE") {cout << "Output file not specified!"; return 1;}
-	while (fin >> s && s != attrbegin){
-		if (s == "") continue;	// skip empty lines
-		if (s == "#") {getline(fin,s,'\n'); continue;}	// skip #followed lines (comments)
-		fin >> u;
-		if		(s == "outfile")	mglon0 = (u);
-	}
+//	fin >> s; 
+//	if (s != "OUTPUT_FILE") {cout << "Output file not specified!"; return 1;}
+//	while (fin >> s && s != attrbegin){
+//		if (s == "") continue;	// skip empty lines
+//		if (s == "#") {getline(fin,s,'\n'); continue;}	// skip #followed lines (comments)
+//		fin >> u;
+//		if		(s == "outfile")	mglon0 = (u);
+//	}
 		
 	fin.close();
 }

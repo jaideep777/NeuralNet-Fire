@@ -1,8 +1,8 @@
 #!/bin/bash
 
-. /home/jaideep/tensorflow/bin/activate
+. activate tensorflow
 python nn_const_data_fire_v4.py
-deactivate
+. deactivate
 sed -i -e "s/\\[/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
 sed -i -e "s/\\]/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
 sed -i -e "s/\\,/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt

@@ -1,38 +1,76 @@
-## CREATE timeseries
-library(ncdf4)
-library(chron)
 
-sim_name           <- "ssaplus"
+rm(list = ls())
+
+# Simulation name ("" or "india" or "ssaplus" etc)
+sim_name           <- "sas"
+
+# Directories to the fire model folder
+fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
+tensorflow_act_dir <- "/home/jaideep/tensorflow"	# tensorflow virtual env dir
+libgsm_dir         <- "/home/jaideep/codes/FIRE_CODES/libgsm_v2" # libgsm dir
+
+# lib directories
+ncxx_legacy_dir    <- "/usr/local/netcdf-cxx-legacy" 
+netcdf_dir         <- "/usr/local/netcdf-c-4.3.2"
+netcdf_cxx4        <- "/usr/local/netcdf-cxx4"
+hdf5_dir           <- "/usr/local/hdf5"
+hdf4_dir           <- "/usr/local/hdf4"
+
+# lib paths
+lib_paths          <- paste0("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:",
+                             hdf5_dir,"/lib:",
+                             hdf4_dir,"/lib:",
+                             netcdf_cxx4,"/lib:",
+                             libgsm_dir,"/lib:",
+                             ncxx_legacy_dir,"/lib:",
+                             netcdf_dir,"/lib")
+
+# LIB and INC paths
+
+lIBPATH            <-  paste0("LIBPATH = -L",ncxx_legacy_dir,"/lib"," -L",libgsm_dir,"/lib")
+INCPATH            <-  paste0("INCPATH = -I",netcdf_dir,"/include"," -I",ncxx_legacy_dir,"/include")
+INCPATH2           <-  paste0("INCPATH += -I",libgsm_dir,"/include")  
+
+source(paste0(fire_dir,"/R_scripts/utils.R"))
+
+system("gedit /home/jaideep/codes/FIRE_CODES/fire_tensorflow/nn_const_data_fire_v4.py")
+setwd("/home/jaideep/codes/FIRE_CODES/fire_tensorflow/")
+system(paste0("./runtf"))
+
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)
 
 
+setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix))
+system("sed -i -e 's/\\[/ /g' weights_ba.txt")
+system("sed -i -e 's/\\]/ /g' weights_ba.txt")
+system("sed -i -e 's/\\,/ /g' weights_ba.txt")
+
+#### Stage 4 ####
+# agrregate (evaluates NN on nc files to generate fire nc file)
+
+system("gedit /home/jaideep/codes/FIRE_CODES/fire_aggregateData/src/main.cpp")
+
+setwd(paste0(fire_dir,"/fire_aggregateData"))
+system(paste0(lib_paths," && make && ./aggregate eval ", sim_name))
+
+
+
+
+
+
+glimits = c(60.25,99.75,5.25,29.75)  # sas
+
 setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
 
 system("mkdir figures")
 
-# SSAPLUS
-system("/usr/local/cdo/bin/cdo ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
-system("/usr/local/cdo/bin/cdo selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
-system("/usr/local/cdo/bin/cdo monmean -selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
+model = "x-lmois"
+library(ncdf4)
+library(chron)
 
-# ## India
-# system("/usr/local/cdo-1.6.7/bin/cdo ifthen /media/jaideep/WorkData/Fire_G/forest_type/IIRS/netcdf/ftmask_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
-# system("/usr/local/cdo-1.6.7/bin/cdo selyear,2007/2015 -ifthen /media/jaideep/WorkData/Fire_G/forest_type/IIRS/netcdf/ftmask_0.5deg.nc -sellonlatbox,66.75,98.25,6.75,38.25 /media/jaideep/WorkData/Fire_G/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
-# # system("/usr/local/cdo-1.6.7/bin/cdo monmean -selyear,2007/2015 -ifthen /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /media/jaideep/WorkData/Fire_G/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
-
-## SAS
-# system("/usr/local/cdo-1.6.7/bin/cdo ifthen -sellonlatbox,60.25,99.75,5.25,29.75 /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
-# system("/usr/local/cdo-1.6.7/bin/cdo selyear,2007/2015 -ifthen -sellonlatbox,60.25,99.75,5.25,29.75 /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,29.75 /media/jaideep/WorkData/Fire_G/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
-# system("/usr/local/cdo-1.6.7/bin/cdo monmean -selyear,2007/2015 -ifthen /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,29.75 /media/jaideep/WorkData/Fire_G/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
-# 
-
-glimits = c(60.25,99.75,5.25,49.75)  # ssaplus
-# glimits = c(66.75, 98.25, 6.75, 38.25) # India
-# glimits = c(60.25,99.75,5.25,29.75)  # sas
-
-model = "full"
+system("/usr/local/cdo-1.6.7/bin/cdo ifthen -sellonlatbox,60.25,99.75,5.25,29.75 /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
 
 fire_pred = NcCreateOneShot(filename = "fire_pred_masked.nc", var_name = "fire", glimits = glimits)
 fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
@@ -65,6 +103,8 @@ slice_obs = apply(X = fire_obs$data, FUN = function(x){mean(x, na.rm=T)}, MARGIN
 slice_obs[is.na(slice_obs)] = 0
 
 spacor = cor(as.numeric(slice_pred), as.numeric(slice_obs))
+
+
 # write.table(x = spacor, file = "spacor.txt", row.names = F, col.names = F)
 
 cols = createPalette(c("black", "blue","green3","yellow","red"),c(0,25,50,100,1000), n = 1000)
@@ -82,7 +122,7 @@ par(mar=c(4,5,3,1), oma=c(1,1,1,1), cex.lab=1.5, cex.axis=1.5)
 plot(y=ts_obs, x=fire_obs$time, col="orange2", type="o", cex=1.2, lwd=1.5, xlab="", ylab="Burned area")
 points(ts_pred, x= fire_pred$time, type="l", col="red", lwd=2)
 mtext(cex = 1, line = .5, text = sprintf("Correlations: Temporal = %.2f, Spatial = %.2f", tmpcor, spacor))
-# axis(side = 1, labels = strftime(fire_obs$time, format="%m")[seq(1,200,by=2)], at=fire_obs$time[seq(1,200,by=2)])
+
 # par(mfrow=c(1,2))
 
 image(fire_pred$lon, fire_pred$lat, slice_pred, col = cols, zlim = c(0,1), xlab="Longitude",ylab = "Latitude")
@@ -103,5 +143,15 @@ mtext(cex = 1, line = .5, text = sprintf("Total BA = %.2f Mha", sum(slice_obs)*5
 
 mtext(text = "All seasons",side = 3,line = 1,outer = T)
 dev.off()
+
+
+
+setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
+sim = "x-lmois-9"
+system(paste0("mkdir ",sim))
+
+system(paste0("mv figures y_predic* weights_ba.txt fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc ",sim))
+
+
 
 

@@ -150,6 +150,8 @@ void write_eval(){
 			float ba_pred = 0;
 			for (int i=0; i<Y.m*Y.n; ++i) ba_pred += ba_classes_mids[i]/1024.0*Y.data[i];
 
+			ba_pred -= 0.001;
+			if (ba_pred < 0) ba_pred = 0;
 			//if (mglons[ilon] == 88 && mglats[ilat] == 26.5) cout << ba_pred << endl;
 			fire(ilon, ilat, 0) = ba_pred; //exp(nfires/6.7)-1;
 		}

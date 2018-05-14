@@ -5,9 +5,18 @@
 
 forcing_data_dir	/media/jaideep/WorkData/Fire_G
 # var |	  dir
+ts		ncep_reanalysis/ts
+rh		ncep_reanalysis/rhum
+wsp		ncep_reanalysis/wsp
+pr		precip_trmm/combined/reordered_dims
 
 > FORCING_VARIABLE_DATA
 # name | unit 	|	prefix   	|	start_yr |	end_yr | nyrs/file | nlevs | mode
+ts		 K			air.sig995		2000		2015		1			1
+rh		 %			rhum.sig995		2000		2015		1			1
+wsp		 m/s		wsp.sig995		2000		2015		1			1	
+pr		 mm/day		pr.trmm-perm	2000		2015		1			1
+
 
 # file name will be taken as "prefix.yyyy.nc" or "prefix.yyyy-yyyy.nc"
 # value types: ins (instantaneous), sum, avg (not used as of now)
@@ -18,35 +27,29 @@ forcing_data_dir	/media/jaideep/WorkData/Fire_G
 
 > STATIC_INPUT_FILES
 # var	|	nlevs | file 
-vegtype		8		forest_type/IIRS/netcdf/ftmap_iirs_8pft.nc
-elev		1		util_data/elevation/elev.0.5-deg.nc
-soilw_i		1 		CPC_soil_mois/soilw.intercept.2001-2010.nc
-soilw_t		1 		CPC_soil_mois/soilw.trend.2001-2010.nc
-pr_i		1		precip_imd_trend/pr.intercept.2001-2010.nc
-pr_t		1		precip_imd_trend/pr.trend.2001-2010.nc
-gpp_i 		1		GPP_modis/gpp.intercept.2001-2010.nc
-gpp_t		1		GPP_modis/gpp.trend.2001-2010.nc
-ld			20		land_degradation/ld_kar.nc
+ftmask		1		forest_type/MODIS/ftmask_MODIS_0.5deg.nc
+msk			1		util_data/masks/surta_global_0.5_sl.nc
+
 
 > TIME
 timestep 	daily
-start_date	2005-1-1
+start_date	2007-1-1
 start_time	0:0:0
-end_date	2005-1-1
+end_date	2007-12-31
 end_time	23:0:0	
 dt			24
 base_date	1950-1-1
 
 > MODEL_GRID
-lon0	74.05
-lonf	78.55
-lat0	11.45
-latf	18.55
-dlat	0.1
-dlon	0.1
+lon0	60.25
+lonf	99.75
+lat0	5.25
+latf	50.25
+dlat	0.5
+dlon	0.5
 
 > OUTPUT_FILE
-ascii_npp.txt
+ascii_fwi.txt
 
 > END
 

@@ -65,7 +65,8 @@ int main_run(){
 		}
 				
 		for (int i=0; i<vars.size(); ++i){
-			vars[i].readVar_reduce_mean(tstart, tend);
+//			vars[i].readVar_reduce_mean(tstart, tend);
+			vars[i].readVar_gt(tstart + hms2xhrs("6:0:0"), 0);
 		}
 		
 		write_ascii_output(d);

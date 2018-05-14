@@ -310,6 +310,8 @@ int init_modelvar(gVar &v, string var_name, string unit, int nl, vector<double> 
 	// set bool values for variables to output
 	v.lwrite = writeVar_flags[var_name];	
 	v.lwriteSP = writeVarSP_flags[var_name] & spout_on;
+
+	v.setRegriddingMethod("bilinear");
 	
 	// add gVar to model variables list
 	model_variables.push_back(&v);
@@ -378,6 +380,7 @@ int init_vars(){
 	INIT_IP_MODELVAR( ba,  1); //   "ba",   ip_data_map["ba"].unit,   1, mgtimes, log_fout); 
 	INIT_IP_MODELVAR( gfed,  1); //   "ba",   ip_data_map["ba"].unit,   1, mgtimes, log_fout); 
 //	INIT_IP_MODELVAR( cld, 1); //   "cld",  ip_data_map["cld"].unit,  1, mgtimes, log_fout); 
+//	INIT_IP_MODELVAR( albedo, 1); //   "cld",  ip_data_map["cld"].unit,  1, mgtimes, log_fout); 
 	
 	#define INIT_MODELVAR(x, unit, nl)  init_modelvar(x,  #x,  unit,  nl, mgtimes, log_fout)
 //	INIT_MODELVAR( canbio,      "gC/m2",  npft);  //, mgtimes, log_fout); 
