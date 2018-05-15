@@ -1,3 +1,13 @@
+# Simulation name ("" or "india" or "ssaplus" etc)
+sim_name           <- "ssaplus"
+
+# Directories to the fire model folder
+fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
+
+#### Init ####
+suffix = ""
+if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
+output_dir = paste0("output",suffix)
 
 
 

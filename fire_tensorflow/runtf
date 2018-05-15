@@ -7,3 +7,4 @@ sed -i -e "s/\\[/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weigh
 sed -i -e "s/\\]/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
 sed -i -e "s/\\,/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
 
+

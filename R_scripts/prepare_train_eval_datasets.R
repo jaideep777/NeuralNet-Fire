@@ -1,65 +1,15 @@
-rm(list = ls())
-
 # Simulation name ("" or "india" or "ssaplus" etc)
 sim_name           <- "ssaplus"
 
 # Directories to the fire model folder
 fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
-tensorflow_act_dir <- "/home/jaideep/anaconda2/bin"	   # path to activate virtualenvs
-libgsm_dir         <- "/home/jaideep/codes/libgsm_v3" # libgsm dir
-
-# lib directories
-ncxx_legacy_dir    <- "/usr/local/netcdf-cxx-legacy" 
-netcdf_dir         <- "/usr/local/netcdf-c-4.3.2"
-netcdf_cxx4        <- "/usr/local/netcdf-cxx4"
-hdf5_dir           <- "/usr/local/hdf5"
-hdf4_dir           <- "/usr/local/hdf4"
-
-# lib paths
-lib_paths          <- paste0("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:",
-							  hdf5_dir,"/lib:",
-							  hdf4_dir,"/lib:",
-							  netcdf_cxx4,"/lib:",
-							  libgsm_dir,"/lib:",
-							  ncxx_legacy_dir,"/lib:",
-							  netcdf_dir,"/lib")
-
-# LIB and INC paths
-
-lIBPATH            <-  paste0("LIBPATH = -L",ncxx_legacy_dir,"/lib"," -L",libgsm_dir,"/lib")
-INCPATH            <-  paste0("INCPATH = -I",netcdf_dir,"/include"," -I",ncxx_legacy_dir,"/include")
-INCPATH2           <-  paste0("INCPATH += -I",libgsm_dir,"/include")  
-
-source(paste0(fire_dir,"/R_scripts/utils.R"))
 
 #### Init ####
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)
-  
-#### Stage 1 ####
-# run fire model
 
-setwd(paste0(fire_dir,"/fire_calcFuel"))
-b                 <- readLines("Makefile")
-b[4]              <- lIBPATH
-b[5]              <- INCPATH
-b[6]              <- INCPATH2  
-writeLines(b,"Makefile")
-
-system(paste0(lib_paths," && make clean all && ./fire"))
-
-#### Stage 2 ####
-# aggregate data (creates training dataset file)
-
-setwd(paste0(fire_dir,"/fire_aggregateData"))
-a                <- readLines("Makefile")
-a[4]             <- lIBPATH
-a[5]             <- INCPATH
-a[6]             <- INCPATH2  
-writeLines(a,"Makefile")
-
-system(paste0(lib_paths," && make clean all && ./aggregate train ", sim_name))
+source(paste0(fire_dir,"/R_scripts/utils.R"))
 
 # clean up aggregated data in R and select forest grids only
 datm = read.delim(paste0(fire_dir, "/fire_aggregateData/",output_dir,"/train_data.txt"), header=T)
@@ -137,7 +87,7 @@ plot.cut.means_obs = function(obs, var, min, max, col.obs, col.pred, ...){
   list(classsizes = tapply(obs, INDEX = cuts, FUN = length), 
        classvalues = tapply(obs, INDEX = cuts, FUN = mean),
        class = cuts
-      )
+  )
 }
 
 
@@ -203,61 +153,3 @@ with( datz, #[as.Date(datz$date) == as.Date("2007-01-07"),],
       plot.colormap(X=lon, Y=lat, Z = lmois, zlim = c(-0.01,1.01), col = rainbow(100), cex = ptsiz, xlim = xlim, ylim = ylim)
 )
 dev.off()
-
-#### Stage 3 ####
-# tensor flow (learn NN model)
-
-# tensorflow parameters
-learn_rate         <- 0.005
-batch_size         <- 5000
-n_steps            <- 2500
-
-setwd(paste0(fire_dir,"/fire_tensorflow"))
-c               <- readLines("nn_const_data_fire_v4.py")
-c[15]           <- paste0("sim_name = '", sim_name, "'")
-c[21]           <- paste0("__learn_rate = ",learn_rate)
-c[22]           <- paste0("__batch_size = ",batch_size)
-c[23]           <- paste0("__n_steps = ",n_steps)
-writeLines(c,"nn_const_data_fire_v4.py")
-
-tf              <- readLines("runtf")
-tf[3]           <- paste0(". ",tensorflow_act_dir,"/bin/activate")
-writeLines(tf,"runtf")
-system(paste0("chmod a+x runtf"))
-system(paste0("./runtf"))
-
-setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix))
-system("sed -i -e 's/\\[/ /g' weights_ba.txt")
-system("sed -i -e 's/\\]/ /g' weights_ba.txt")
-system("sed -i -e 's/\\,/ /g' weights_ba.txt")
-
-#### Stage 4 ####
-# agrregate (evaluates NN on nc files to generate fire nc file)
-
-setwd(paste0(fire_dir,"/fire_aggregateData"))
-system(paste0(lib_paths," && make && ./aggregate eval ", sim_name))
-
-
-#### Stage 5 #### 
-# Plot maps and calibration plots
-
-setwd(fire_dir)
-source("R_scripts/plot_aggregate_maps_timeseries.R")
-setwd(fire_dir)
-source("R_scripts/plot_calibration.R")
-setwd(fire_dir)
-source("R_scripts/plot_test_train_datasets_3.R")
-
-
-# source("R_scripts/plot_canbio_prerun_v2.R")
-# source("plot_maps.R")
-
-
-setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
-sim = "full-1"
-system(paste0("mkdir ",sim))
-system(paste0("mv figures y_predic* weights_ba.txt fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc ",sim))
-
-
-
-

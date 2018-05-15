@@ -38,7 +38,7 @@ ID_ba		= 19 # 19 for georgia, 20 for gfed4
 ID_pop		= 22
 	
 #X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
-X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
+X_ids = [ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
 n_inputs = len(X_ids)
 
 # functions to initialize weights and biases
@@ -250,7 +250,6 @@ with tf.Session() as sess:
   np.savetxt("../fire_aggregateData/output"+suffix+"/y_predic_ba_eval.txt",y_ev,delimiter=" ")
   np.savetxt("../fire_aggregateData/output"+suffix+"/y_predic_ba_test.txt",y_ts,delimiter=" ")
 
-
 #  def rmb(s):	# small function to remove square brackets from printed arrays 
 #    dic = {'[':'', ']':''}
 #    return "".join(dic.get(x,x) for x in str(s))
@@ -287,6 +286,7 @@ with tf.Session() as sess:
   sys.stdout=orig_stdout;  
   f.close()
   
+  np.savetxt("../fire_aggregateData/output"+suffix+"/ce_and_accuracy.txt", [ce_avg/count, acc_avg/count,  accv_avg/count, acct_avg/count])
   
   
   

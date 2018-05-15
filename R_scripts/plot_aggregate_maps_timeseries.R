@@ -2,7 +2,13 @@
 library(ncdf4)
 library(chron)
 
+# Simulation name ("" or "india" or "ssaplus" etc)
 sim_name           <- "ssaplus"
+
+# Directories to the fire model folder
+fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
+
+#### Init ####
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)
@@ -14,8 +20,8 @@ system("mkdir figures")
 
 # SSAPLUS
 system("/usr/local/cdo/bin/cdo ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
-system("/usr/local/cdo/bin/cdo selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
-system("/usr/local/cdo/bin/cdo monmean -selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
+# system("/usr/local/cdo/bin/cdo selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
+# system("/usr/local/cdo/bin/cdo monmean -selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
 
 # ## India
 # system("/usr/local/cdo-1.6.7/bin/cdo ifthen /media/jaideep/WorkData/Fire_G/forest_type/IIRS/netcdf/ftmask_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
@@ -39,13 +45,17 @@ fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
 fire_pred$data = fire_pred$data - 0.001
 fire_pred$data[fire_pred$data < 0.00] = 0
 
+cell_area = t(matrix(ncol = length(fire_pred$lons), data = rep(55.5e3*55.5e3*cos(fire_pred$lats*pi/180), length(fire_pred$lons) ), byrow = F ))
+
 fire_obs = NcCreateOneShot(filename = "fire_obs_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
 fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
-fire_obs$data = fire_obs$data/55.5e3/55.5e3
+fire_obs$data = fire_obs$data
 
-ts_pred = apply(X = fire_pred$data, FUN = function(x){sum(x, na.rm=T)}, MARGIN = 3)
-ts_obs = apply(X = fire_obs$data, FUN = function(x){sum(x, na.rm=T)}, MARGIN = 3)
+ts_pred = apply(X = fire_pred$data, FUN = function(x){sum(x*cell_area, na.rm=T)}, MARGIN = 3)*0.0001/1e6
+ts_obs = apply(X = fire_obs$data, FUN = function(x){sum(x, na.rm=T)}, MARGIN = 3)*0.0001/1e6
 tmpcor = cor(ts_pred, ts_obs)
+
+
 
 # p_obs1 = p_obs[which(obs_t >= "2007-1-1" & obs_t <= "2015-12-31")]/55.5/55.5e6
 # t1 = obs_t[which(obs_t >= "2007-1-1" & obs_t <= "2015-12-31")]
@@ -59,6 +69,7 @@ tmpcor_yoy = cor(ts_pred_yr, ts_obs_yr)
 # plot(ts_obs_yr~ts_pred_yr)
 
 slice_pred = apply(X = fire_pred$data, FUN = function(x){mean(x, na.rm=T)}, MARGIN = c(1,2))*24
+slice_pred = slice_pred*cell_area
 slice_pred[is.na(slice_pred)] = 0
 
 slice_obs = apply(X = fire_obs$data, FUN = function(x){mean(x, na.rm=T)}, MARGIN = c(1,2))*24 
@@ -71,10 +82,10 @@ cols = createPalette(c("black", "blue","green3","yellow","red"),c(0,25,50,100,10
 cols = createPalette(c("black", "black", "black","blue","mediumspringgreen","yellow","orange", "red","brown"),c(0,0.2,0.5,1,2,5,10,20,50,100)*1000, n = 1000)
 cols = createPalette(c("black", "blue4", "blue", "skyblue", "cyan","mediumspringgreen","yellow","orange", "red","brown"),c(0,0.2,0.5,1,2,5,10,20,50,100)*1000, n = 1000) #gfed 
 
-png(filename = paste0("figures/all_seasons", "(",model,").png"),res = 300,width = 600*3,height = 460*3) # 520 for sasplus, india
+png(filename = paste0("figures/all_seasons", "(",model,").png"),res = 300,width = 600*3,height = 520*3) # 520 for sasplus, india, 460 for SAS 
 layout(matrix(c(1,1,
                 1,1,
-                # 2,3,
+                2,3,
                 2,3,
                 2,3), ncol=2,byrow = T))  # vertical
 par(mar=c(4,5,3,1), oma=c(1,1,1,1), cex.lab=1.5, cex.axis=1.5)
@@ -85,12 +96,12 @@ mtext(cex = 1, line = .5, text = sprintf("Correlations: Temporal = %.2f, Spatial
 # axis(side = 1, labels = strftime(fire_obs$time, format="%m")[seq(1,200,by=2)], at=fire_obs$time[seq(1,200,by=2)])
 # par(mfrow=c(1,2))
 
-image(fire_pred$lon, fire_pred$lat, slice_pred, col = cols, zlim = c(0,1), xlab="Longitude",ylab = "Latitude")
-mtext(cex = 1, line = .5, text = sprintf("Total BA = %.2f Mha", sum(slice_pred, na.rm=T)*55.5e3*55.5e3*0.0001/1e6))
+image(fire_pred$lon, fire_pred$lat, slice_pred/cell_area, col = cols, zlim = c(0,1), xlab="Longitude",ylab = "Latitude")
+mtext(cex = 1, line = .5, text = sprintf("Total BA = %.2f Mha", sum(slice_pred, na.rm=T)*0.0001/1e6))
 # plot(shp, add=T)
 
-image(fire_obs$lon, fire_obs$lat, slice_obs, col = cols, zlim = c(0,1),xlab = "Longitude",ylab = "Latitude")
-mtext(cex = 1, line = .5, text = sprintf("Total BA = %.2f Mha", sum(slice_obs)*55.5e3*55.5e3*0.0001/1e6))
+image(fire_obs$lon, fire_obs$lat, slice_obs/cell_area, col = cols, zlim = c(0,1),xlab = "Longitude",ylab = "Latitude")
+mtext(cex = 1, line = .5, text = sprintf("Total BA = %.2f Mha", sum(slice_obs)*0.0001/1e6))
 # plot(shp, add=T)
 
 # image(x=), fire_obs$lat, slice_obs, col = cols, zlim = c(0,1),xlab = "Longitude",ylab = "Latitude")
