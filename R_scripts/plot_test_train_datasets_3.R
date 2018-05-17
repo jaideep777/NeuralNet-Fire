@@ -1,5 +1,11 @@
 # Simulation name ("" or "india" or "ssaplus" etc)
-sim_name           <- "ssaplus"
+for (model_name in c("full")){
+for (iter in 1:10){
+
+model = paste0(model_name, "_", iter)
+
+# Simulation name ("" or "india" or "ssaplus" etc)
+sim_name           <- paste0("ssaplus", "/", model)
 
 # Directories to the fire model folder
 fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
@@ -8,6 +14,7 @@ fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)
+
 
 
 
@@ -75,11 +82,13 @@ plot.relations = function(datf.fn, dataset="Training"){
 
 
 
-model = "full"
+# model = "full"
 
-datf_train = read.fireData(dataset = "train", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
-datf_eval = read.fireData(dataset = "eval", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
-datf_test = read.fireData(dataset = "test", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
+nn_offset = 0.002
+
+datf_train = read.fireData(dataset = "train", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
+datf_eval = read.fireData(dataset = "eval", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
+datf_test = read.fireData(dataset = "test", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
 
 dat.ag_train = datf_train
 dat.ag_test = datf_test
@@ -98,7 +107,7 @@ ts_obs_eval = tapply(X = dat.ag_eval$ba, INDEX = dat.ag_eval$date, FUN = sum)
 ts_pred_eval = tapply(X = dat.ag_eval$ba.pred, INDEX = dat.ag_eval$date, FUN = sum)
 
 setwd(paste0(fire_dir, "/fire_aggregateData/",output_dir,"/figures"))
-png(filename = paste0("pred_obs_vars(",model,").png"), width = 660*3, height = 1050*3, res = 300)
+png(filename = paste0("pred_obs_vars(",model,")_nn_off_",nn_offset,".png"), width = 660*3, height = 1050*3, res = 300)
 
 layout(matrix(data=c( 1, 2,3,4,5,6,7,
                       1, 8,9,10,11,12,13,
@@ -143,4 +152,5 @@ dev.off()
 
 
 # source("/home/jaideep/codes/FIRE_CODES/R_scripts/plot_maps.R")
-
+}
+}

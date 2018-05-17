@@ -1,9 +1,14 @@
 ## CREATE timeseries
 library(ncdf4)
 library(chron)
+# , "x_lmois", "x_wsp", "x_pop", "ts", "x_rh", "x_rh_lmois", "x_rh_lmois"
+for (model_name in c("full", "x_dxl", "x_lmois", "x_wsp", "x_pop", "x_ts", "x_rh", "x_rh_lmois")){
+for (iter in 1:10){
+
+model = paste0(model_name, "_", iter)
 
 # Simulation name ("" or "india" or "ssaplus" etc)
-sim_name           <- "ssaplus"
+sim_name           <- paste0("ssaplus", "/", model)
 
 # Directories to the fire model folder
 fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
@@ -16,10 +21,10 @@ output_dir = paste0("output",suffix)
 
 setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
 
-system("mkdir figures")
+# system("mkdir figures")
 
 # SSAPLUS
-system("/usr/local/cdo/bin/cdo ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
+# system("/usr/local/cdo/bin/cdo ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc")
 # system("/usr/local/cdo/bin/cdo selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA/burned_area_0.5deg.2001-2016.nc fire_obs_masked_2007-2015.nc")
 # system("/usr/local/cdo/bin/cdo monmean -selyear,2007/2015 -ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc -sellonlatbox,60.25,99.75,5.25,49.75 /home/jaideep/Data/fire_BA_GFED/GFED4.0_MQ_0.5deg.1995-2016.nc fire_gfed_masked_selyear.nc")
 
@@ -38,17 +43,18 @@ glimits = c(60.25,99.75,5.25,49.75)  # ssaplus
 # glimits = c(66.75, 98.25, 6.75, 38.25) # India
 # glimits = c(60.25,99.75,5.25,29.75)  # sas
 
-model = "full"
 
 fire_pred = NcCreateOneShot(filename = "fire_pred_masked.nc", var_name = "fire", glimits = glimits)
-fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
-fire_pred$data = fire_pred$data - 0.001
+# fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
+fire_pred = NcClipTime(fire_pred, "2008-1-1", "2010-12-31")
+fire_pred$data = fire_pred$data - 0.002
 fire_pred$data[fire_pred$data < 0.00] = 0
 
 cell_area = t(matrix(ncol = length(fire_pred$lons), data = rep(55.5e3*55.5e3*cos(fire_pred$lats*pi/180), length(fire_pred$lons) ), byrow = F ))
 
-fire_obs = NcCreateOneShot(filename = "fire_obs_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
-fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
+fire_obs = NcCreateOneShot(filename = "../fire_obs_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
+# fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
+fire_obs = NcClipTime(fire_obs, "2008-1-1", "2010-12-31")
 fire_obs$data = fire_obs$data
 
 ts_pred = apply(X = fire_pred$data, FUN = function(x){sum(x*cell_area, na.rm=T)}, MARGIN = 3)*0.0001/1e6
@@ -82,7 +88,7 @@ cols = createPalette(c("black", "blue","green3","yellow","red"),c(0,25,50,100,10
 cols = createPalette(c("black", "black", "black","blue","mediumspringgreen","yellow","orange", "red","brown"),c(0,0.2,0.5,1,2,5,10,20,50,100)*1000, n = 1000)
 cols = createPalette(c("black", "blue4", "blue", "skyblue", "cyan","mediumspringgreen","yellow","orange", "red","brown"),c(0,0.2,0.5,1,2,5,10,20,50,100)*1000, n = 1000) #gfed 
 
-png(filename = paste0("figures/all_seasons", "(",model,").png"),res = 300,width = 600*3,height = 520*3) # 520 for sasplus, india, 460 for SAS 
+png(filename = paste0("figures/all_seasons", "(",model,")_testData.png"),res = 300,width = 600*3,height = 520*3) # 520 for sasplus, india, 460 for SAS 
 layout(matrix(c(1,1,
                 1,1,
                 2,3,
@@ -115,4 +121,6 @@ mtext(cex = 1, line = .5, text = sprintf("Total BA = %.2f Mha", sum(slice_obs)*0
 mtext(text = "All seasons",side = 3,line = 1,outer = T)
 dev.off()
 
-
+cat(model, "\t", spacor, "\t", tmpcor, "\t", tmpcor_yoy, "\t", sum(slice_pred, na.rm=T)*0.0001/1e6, "\n")
+}
+}

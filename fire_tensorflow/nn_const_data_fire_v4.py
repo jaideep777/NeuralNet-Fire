@@ -38,7 +38,7 @@ ID_ba		= 19 # 19 for georgia, 20 for gfed4
 ID_pop		= 22
 	
 #X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
-X_ids = [ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
+X_ids = [ID_ts,  ID_wsp,  ID_dxl ,  ID_pop]
 n_inputs = len(X_ids)
 
 # functions to initialize weights and biases

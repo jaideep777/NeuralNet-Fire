@@ -2,8 +2,13 @@
 library(ncdf4)
 library(chron)
 
+for (model_name in c("x_dxl")){
+for (iter in 1:1){
+
+model = paste0(model_name, "_", iter)
+
 # Simulation name ("" or "india" or "ssaplus" etc)
-sim_name           <- "ssaplus"
+sim_name           <- paste0("ssaplus", "/", model)
 
 # Directories to the fire model folder
 fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
@@ -21,12 +26,12 @@ setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
 
 fire_pred = NcCreateOneShot(filename = "fire_pred_masked.nc", var_name = "fire", glimits = glimits)
 fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
-# fire_pred$data = fire_pred$data - 0.001
-# fire_pred$data[fire_pred$data < 0.00] = 0
+fire_pred$data = fire_pred$data - 0.002
+fire_pred$data[fire_pred$data < 0.00] = 0
 
 cell_area = t(matrix(ncol = length(fire_pred$lons), data = rep(55.5e3*55.5e3*cos(fire_pred$lats*pi/180), length(fire_pred$lons) ), byrow = F ))
 
-fire_obs = NcCreateOneShot(filename = "fire_obs_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
+fire_obs = NcCreateOneShot(filename = "../fire_obs_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
 fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
 # fire_obs$data = fire_obs$data
 
@@ -105,3 +110,6 @@ for (sea in 1:length(seasons)){
 # r2 = summary(lm(ts_obs_eval~ts_pred_eval))$adj.r.squared
 # r = cor(ts_obs_eval, ts_pred_eval)
 # add_label(0.00, 0.15, label = sprintf("R (eval) = %.2f", r), cex=1.5, pos=4)
+
+}
+}

@@ -131,10 +131,10 @@ void write_eval(){
 						 ts(ilon, ilat, 0),
 						 wsp(ilon, ilat, 0),
 						 dxl (ilon, ilat, 0),
-						 lmois(ilon, ilat, 0),
+						 //lmois(ilon, ilat, 0),
 						 log(1+pop(ilon,ilat,0))
 						};
-			Matrix X(1,5,x);
+			Matrix X(1,4,x);
 			Matrix Y = fireNet.forward_prop(X, true);
 //			float nfires = 0;
 //			for (int i=0; i<Y.m*Y.n; ++i) nfires += fire_classes_mids[i]*Y.data[i];
@@ -151,8 +151,8 @@ void write_eval(){
 			float ba_pred = 0;
 			for (int i=0; i<Y.m*Y.n; ++i) ba_pred += ba_classes_mids[i]/1024.0*Y.data[i];
 
-			ba_pred -= 0.001;
-			if (ba_pred < 0) ba_pred = 0;
+//			ba_pred -= 0.001;
+//			if (ba_pred < 0) ba_pred = 0;
 			//if (mglons[ilon] == 88 && mglats[ilat] == 26.5) cout << ba_pred << endl;
 			fire(ilon, ilat, 0) = ba_pred; //exp(nfires/6.7)-1;
 		}

@@ -175,8 +175,8 @@ mids = function(x){
 }
 
 
-read.fireData = function(dataset, dir){
-  datf = read.csv(file = paste0(dir,"/",dataset,"_forest.csv"))
+read.fireData = function(dataset, dir, nn_offset=0.001){
+  datf = read.csv(file = paste0(dir,"/../",dataset,"_forest.csv"))
   
   daty = read.delim(paste0(dir,"/y_predic_ba_",dataset,".txt"), header=F, sep=" ")
   # nfires_classes = c(0,1,sqrt(fire_classes[2:length(fire_classes)]* c(fire_classes[3:length(fire_classes)])))
@@ -185,7 +185,7 @@ read.fireData = function(dataset, dir){
   ba_classes = c(0,2^(seq(log2(2^0), log2(2^10), length.out=11)))/1024
   ba_classes_mids = c(0, 0.5/1024, sqrt(ba_classes[3:length(ba_classes)-1]*ba_classes[3:length(ba_classes)]))
   datf$ba.pred = apply(X=daty, MARGIN=1, FUN=function(x){sum(ba_classes_mids*x)})
-  datf$ba.pred = datf$ba.pred - 0.001
+  datf$ba.pred = datf$ba.pred - nn_offset
   datf$ba.pred[datf$ba.pred < 0] = 0;
   datf$baclass_pred = sapply(datf$ba.pred,FUN = function(x){length(which(x>ba_classes))})
   

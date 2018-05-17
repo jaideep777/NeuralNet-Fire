@@ -1,5 +1,6 @@
 #!/bin/bash
-FILE=$1
+for i in 1 2 3 4 5 6 7 8 9 10; do
+FILE=x_rh_lmois_$i
 #cd fire_calcFuel
 #./fire ssaplus
 #cd ..
@@ -14,9 +15,11 @@ export PATH=$PATH:/home/jaideep/anaconda2/bin
 cd ../fire_aggregateData
 ./aggregate eval ssaplus
 cd ..
-Rscript R_scripts/all_plots.R
+#Rscript R_scripts/all_plots.R
 cd fire_aggregateData/output_ssaplus
+cdo ifthen /home/jaideep/Data/forest_type/MODIS/ftmask_MODIS_0.5deg.nc fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc
 mkdir $FILE
-mv figures fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc weights_ba.txt y_predic*.txt ce_and_accuracy.txt $FILE
+mv fire.2007-1-1-2015-12-31.nc fire_pred_masked.nc weights_ba.txt y_predic*.txt ce_and_accuracy.txt $FILE
 cd ../..
+done
 

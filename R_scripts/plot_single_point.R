@@ -1,6 +1,7 @@
 #### SINGLE POINT OUTPUT ####
 
 # plot(dat$npp~as.Date(dat$date), type="l")
+sim_name = "ssaplus"
 dat = read.csv(file = paste0("/home/jaideep/codes/FIRE_CODES/fire_calcFuel/output_",sim_name,"/point_run.txt"), sep="\t",header=T, skip=4)
 
 daty = read.delim("/home/jaideep/codes/FIRE_CODES/fire_tensorflow/y_predic_ba.txt", header=F, sep=" ")
@@ -10,7 +11,7 @@ ba_classes_mids = c(0, 0.5/1024, sqrt(ba_classes[3:length(ba_classes)-1]*ba_clas
 ba_pred = apply(X=daty, MARGIN=1, FUN=function(x){sum(ba_classes_mids*x)})
 baclass_pred = sapply(ba_pred,FUN = function(x){length(which(x>ba_classes))})
 
-datf = read.csv(file = "/home/jaideep/codes/FIRE_CODES/fire_tensorflow/train_forest.csv")
+# datf = read.csv(file = "/home/jaideep/codes/FIRE_CODES/fire_aggregateData/out/train_forest.csv")
 
 mudu_ids = which(datf$lat == 11.5 & datf$lon == 76.5)
 dat_mudu = datf[mudu_ids,]

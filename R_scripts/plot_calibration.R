@@ -2,8 +2,13 @@
 # source(paste0(fire_dir,"/R_scripts/utils.R"))
 #### PREDICTED FIRES - CALIBRATION ####
 
+for (model_name in c("full")){
+for (iter in 1:10){
+
+model = paste0(model_name, "_", iter)
+
 # Simulation name ("" or "india" or "ssaplus" etc)
-sim_name           <- "ssaplus"
+sim_name           <- paste0("ssaplus", "/", model)
 
 # Directories to the fire model folder
 fire_dir           <- "/home/jaideep/codes/FIRE_CODES" # root directory for fire codes
@@ -28,13 +33,15 @@ system("mkdir figures")
 # datf$baclass_pred = sapply(datf$ba.pred,FUN = function(x){length(which(x>ba_classes))})
 # 
 
-datf_train = read.fireData(dataset = "train", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
-datf_eval = read.fireData(dataset = "eval", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
-datf_test = read.fireData(dataset = "test", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
+nn_offset = 0.002
+
+datf_train = read.fireData(dataset = "train", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
+datf_eval = read.fireData(dataset = "eval", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
+datf_test = read.fireData(dataset = "test", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
 
 # datf = rbind(datf_eval, datf_test, datf_train)
 
-datf = read.fireData(dataset = dataset, dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
+datf = read.fireData(dataset = dataset, dir=paste0(fire_dir, "/fire_aggregateData/",output_dir), nn_offset = nn_offset)
 
 # library(ncdf4)
 # library(chron)
@@ -53,10 +60,10 @@ datf = read.fireData(dataset = dataset, dir=paste0(fire_dir, "/fire_aggregateDat
 
 # setwd(paste0("/home/jaideep/codes/FIRE_CODES/figures/",dataset))
 
-plot_calib = function(datf, name, min=1e-3, max=1e-1){
-  insuff_data = which(table(datf$baclass_pred)<5)
+plot_calib = function(datf, name, min=1e-4, max=1e-1){
+  insuff_data = which(table(datf$baclass_pred)<10)
   for (i in 1:length(insuff_data)){
-    datf$baclass_pred[datf$baclass_pred == insuff_data[i]] = NA
+    datf$baclass_pred[datf$baclass_pred == as.numeric(names(insuff_data[i]))] = NA
   }
   datf = datf[complete.cases(datf),]
   
@@ -66,9 +73,11 @@ plot_calib = function(datf, name, min=1e-3, max=1e-1){
   }
   
 #  par(mfrow = c(1,2), mar=c(4,4,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
-  obs_ba.predc = tapply(X = datf$ba, INDEX = datf$baclass_pred, FUN=mean)
-  pred_ba.predc = tapply(X = datf$ba.pred, INDEX = datf$baclass_pred, FUN=mean)
+  obs_ba.predc = tapply(X = datf$ba, INDEX = datf$baclass_pred, FUN=mean)[-1]
+  pred_ba.predc = tapply(X = datf$ba.pred, INDEX = datf$baclass_pred, FUN=mean)[-1]
+  n.obs = tapply(X = datf$ba.pred, INDEX = datf$baclass_pred, FUN=length)[-1]
   plot(obs_ba.predc~pred_ba.predc, log="xy", xlab = "Classwise mean\npredicted BA", ylab = "Classwise mean\nobserved BA", xlim=c(min,max), ylim=c(min,max), cex=1.5, lwd=2)
+  points(obs_ba.predc~pred_ba.predc, cex=n.obs/200, pch=20, col=addTrans("black",30))
   abline(0,1,col="red", lwd=2)
   
   #a = summary(lm(obs_ba.predc~pred_ba.predc))
@@ -81,7 +90,7 @@ plot_calib = function(datf, name, min=1e-3, max=1e-1){
   mtext(col="blue",text = paste(name, "(n = ", nrow(datf),", obs = ",sprintf("%.2f",sum(datf$ba)*55.5e3^2*1e-10), " Mha, pred = ",sprintf("%.2f",sum(datf$ba.pred)*55.5e3^2*1e-10)," Mha)"), cex=1.1, side=3, adj = -0., padj = -1.5)  
   
   plot(f(datf$ba)~f(datf$ba.pred), pch=20, cex=0.2, xlab = "Predicted BA", ylab = "Observed BA", xlim=c(0,0.02), ylim=c(0,0.02))
-  abline(lm(f(datf$ba)~f(datf$ba.pred)), lwd=3)
+  # abline(lm(f(datf$ba)~f(datf$ba.pred)), lwd=3)
   # abline(lm((datf$ba)~f(datf$ba.pred)), col="grey", lwd=3) 
   abline(0,1, col="red", lwd=2)
   
@@ -96,124 +105,7 @@ plot_calib = function(datf, name, min=1e-3, max=1e-1){
 
 }
 
-# plot(jitter(datf$baclass)~jitter(datf$baclass_pred), pch=20, cex=1, col=rgb(0,0,0,alpha = 0.1))
-# 
-# require(reshape2)
-# datp = data.frame(obs=datf$ba, pred=f(datf$ba.pred), class = datf$baclass_pred)
-# datp2=(melt(datp, id.vars = "class", value.name = "ba", variable.name = "set"))
-# boxplot((datp2$ba)~datp2$set+datp2$class, col=c("red","blue"), varwidth=F)
-# # require(beanplot)
-# # beanplot(log10(datp$pred+1)~datp$class, col=c("red","blue"), what = c(1,1,1,0) )
-# tapply(datp2$ba, INDEX = list(datp2$set, datp2$class), FUN = mean)
-# tapply(datp2$ba, INDEX = datp2$set, FUN = sum)
 
-# datp = data.frame(obs=datf$ba, pred=f(datf$ba.pred), class = datf$baclass)
-# datp2=(melt(datp, id.vars = "class", value.name = "ba", variable.name = "set"))
-# boxplot(log10(datp2$ba+1)~datp2$set+datp2$class, col=c("red","blue"), varwidth=F )
-# # require(beanplot)
-# # beanplot(log10(datp$pred+1)~datp$class, col=c("red","blue"), what = c(1,1,1,0) )
-# tapply(datp2$ba, INDEX = list(datp2$set, datp2$class), FUN = mean)
-# tapply(datp2$ba, INDEX = datp2$set, FUN = sum)
-
-
-# plot(x=jitter(log(datp$obs+1)), y=jitter(log(datp$pred+1)), pch=".", cex=2)
-# abline(lm(log(datp$obs+1)~log(datp$pred+1)-1),col="green4")
-# abline(0,1,col="red")
-# abline(lm(log(datp$pred[datp$obs>20]+1)~log(datp$obs[datp$obs>20]+1)-1))
-# abline(lm(log(datp$pred[datp$obs<20]+1)~log(datp$obs[datp$obs<20]+1)-1))
-
-
-#### Pred and obs phase plots with classes ####
-
-# png(filename = "pred_classes.png", width = 400*3, height = 500*3, res = 300)
-# 
-# par(mfrow = c(3,2), mar=c(4,4,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
-# 
-# plot(datf$baclass_pred~datf$lmois, col=rgb(1-datf$dxl/max(datf$dxl), datf$dxl/max(datf$dxl), 0), pch=20)
-# plot(datf$baclass~datf$lmois, col=rgb(1-datf$dxl/max(datf$dxl), datf$dxl/max(datf$dxl), 0), pch=20)
-# 
-# plot(datf$baclass_pred~datf$dxl, col=rgb(1-datf$lmois, 0, datf$lmois))
-# plot(datf$baclass~datf$dxl, col=rgb(1-datf$lmois, 0, datf$lmois))
-# 
-# plot(datf$lmois~datf$dxl, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max(datf$baclass_pred), 1-datf$baclass_pred/max(datf$baclass_pred), 0))
-# points(datf$lmois~datf$dxl, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max(datf$baclass_pred), 1-datf$baclass_pred/max(datf$baclass_pred), 0))
-# # plot(datf$lmois~datf$dxl, pch=20, cex=1, col=rgb(datf$baclass_pred>0, datf$baclass_pred==0, 0,alpha = 0.3))
-# # par(mfrow = c(2,2), mar=c(4,4,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
-# plot(datf$lmois~datf$dxl, pch=20, cex=0.1, col=rgb(datf$baclass/max(datf$baclass), 1-datf$baclass/max(datf$baclass), 0))
-# points(datf$lmois~datf$dxl, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max(datf$baclass), 1-datf$baclass/max(datf$baclass), 0))
-# # plot(datf$lmois~datf$dxl, pch=20, cex=1, col=rgb(datf$baclass>0, datf$baclass==0, 0,alpha = 0.3))
-# 
-# dev.off()
-
-#### Pred and obs phase plots with BA ####
-
-plot.niche = function(datf, name="", max.baclass=11){
-  png(filename = paste0("niche(",model,"_",name,").png"), width = 400*3, height = 500*3, res = 300)
-  
-  par(mfrow = c(3,2), mar=c(4,5,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
-  
-  plot(datf$lmois~datf$dxl, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlab = "Fuel mass", ylab="Fuel Moisture")
-  points(datf$lmois~datf$dxl, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
-  plot(datf$lmois~datf$dxl, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlab = "Fuel mass", ylab="Fuel Moisture")
-  points(datf$lmois~datf$dxl, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
-  
-  # plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlim=c(270-273.16,320-273.16), xlab = "Temperature", ylab="Rel Humidity")
-  # points(datf$rh~datf$ts, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
-  # plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlim=c(270-273.16,320-273.16), xlab = "Temperature", ylab="Rel Humidity")
-  # points(datf$rh~datf$ts, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
-
-  plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlim=c(270,320), xlab = "Temperature", ylab="Rel Humidity")
-  points(datf$rh~datf$ts, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
-  plot(datf$rh~datf$ts, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlim=c(270,320), xlab = "Temperature", ylab="Rel Humidity")
-  points(datf$rh~datf$ts, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
-  
-    
-  plot(datf$ts~datf$wsp, pch=20, cex=0.1, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0), xlab = "Wind speed", ylab="Temperature")
-  points(datf$ts~datf$wsp, pch=20, cex=datf$baclass/4, col=rgb(datf$baclass/max.baclass, 1-datf$baclass/max.baclass, 0))
-  plot(datf$ts~datf$wsp, pch=20, cex=0.1, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0), xlab = "Wind speed", ylab="Temperature")
-  points(datf$ts~datf$wsp, pch=20, cex=datf$baclass_pred/4, col=rgb(datf$baclass_pred/max.baclass, 1-datf$baclass_pred/max.baclass, 0))
-  
-  dev.off()
-}
-# #### Pred and obs vs vars ####
-# 
-# datf = datf[order(datf$date), ]
-# ts_obs = tapply(X = datf$ba, INDEX = datf$date, FUN = sum)
-# ts_pred = tapply(X = datf$ba.pred, INDEX = datf$date, FUN = sum)
-# 
-# png(filename = "pred_obs_vs_vars.png", width = 340*3, height = 600*3, res = 300)
-# 
-# par(mfrow = c(4,1), mar=c(4,5,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
-# 
-# plot(ts_obs~as.Date(names(ts_obs)), type="o", col="grey", xlab="Time", ylab="Burned area")
-# points(ts_obs~as.Date(names(ts_obs)), col="grey4")
-# points(ts_pred~as.Date(names(ts_pred)), col="blue", type="l", lwd=2)
-# 
-# 
-# dxl_cuts = cut(datf$dxl, breaks = seq(0,300, by=10))
-# plot(x= head(filter(seq(0,300, by=10), filter = c(0.5,0.5)), -1), y=tapply(datf$ba, INDEX = dxl_cuts, FUN = mean), col="green2", lwd=2, ylab="Burned area", xlab="Fuel mass")
-# points(x= head(filter(seq(0,300, by=10), filter = c(0.5,0.5)), -1), y=tapply(datf$ba.pred, INDEX = cut(datf$dxl, breaks = seq(0,300, by=10)), FUN = mean), type="l", lwd=2, col="green4")
-# 
-# plot(tapply(datf$ba, INDEX = cut(datf$lmois, breaks = seq(0,1, by=0.05)), FUN = mean), col="cyan3", lwd=2, ylab="Burned area", xlab="Fuel moisture")
-# points(tapply(datf$ba.pred, INDEX = cut(datf$lmois, breaks = seq(0,1, by=0.05)), FUN = mean), type="l", lwd=2, col="blue")
-# 
-# plot(tapply(datf$ba, INDEX = cut(datf$ts, breaks = seq(250,320, by=5)), FUN = mean), col="orange2", lwd=2, ylab="Burned area", xlab="Temperature")
-# points(tapply(datf$ba.pred, INDEX = cut(datf$ts, breaks = seq(250,320, by=5)), FUN = mean), type="l", lwd=2, col="red")
-# 
-# dev.off()
-
-# plot(tapply(datf$ba, INDEX = cut(datf$rh, breaks = seq(0,110, by=5)), FUN = mean), col="orange2", lwd=2, ylab="Burned area", xlab="Temperature")
-# points(tapply(datf$ba.pred, INDEX = cut(datf$rh, breaks = seq(0,110, by=5)), FUN = mean), type="l", lwd=2, col="red")
-# 
-# plot(tapply(datf$ba, INDEX = cut(datf$wsp, breaks = seq(0,8, by=.2)), FUN = mean), col="orange2", lwd=2, ylab="Burned area", xlab="Temperature")
-# points(tapply(datf$ba.pred, INDEX = cut(datf$wsp, breaks = seq(0,8, by=.2)), FUN = mean), type="l", lwd=2, col="red")
-# 
-# plot(tapply(datf$ba, INDEX = cut(datf$forest_frac, breaks = seq(0,1, by=.01)), FUN = mean), col="orange2", lwd=2, ylab="Burned area", xlab="Temperature")
-# points(tapply(datf$ba.pred, INDEX = cut(datf$forest_frac, breaks = seq(0,1, by=.01)), FUN = mean), type="l", lwd=2, col="red")
-# 
-# plot(tapply(datf$ba, INDEX = cut(datf$agri_frac, breaks = seq(0,1, by=.01)), FUN = mean), col="orange2", lwd=2, ylab="Burned area", xlab="Temperature")
-# points(tapply(datf$ba.pred, INDEX = cut(datf$agri_frac, breaks = seq(0,1, by=.01)), FUN = mean), type="l", lwd=2, col="red")
-# 
 setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix,"/figures" ))
 
 iX   = 0
@@ -233,11 +125,6 @@ iMX  = 8
 pfts_ssaplus = c(0, 1, 6, 10, 2, 7, 9, 11)
 pftnames_ssaplus = c("Barren", "NLE", "SCX", "AGR", "BLE", "MD", "GR", "MX")
 
-# model = "full"
-# for (i in 1:length(pfts_ssaplus)){ 
-#   plot.niche(datf[datf$dft==pfts_ssaplus[i],], pftnames_ssaplus[i])  # X
-# }
-plot.niche(datf, "ALL")  # MIXED
 
 png(filename = "calib_all.png", width = 300*6, height = 500*6, res=300)
 par(mfrow = c(4,2), mar=c(5,7,4,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5, mgp=c(4,1,0))
@@ -260,3 +147,5 @@ dev.off()
 
 
 
+}
+}
