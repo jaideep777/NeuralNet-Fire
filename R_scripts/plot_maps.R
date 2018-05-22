@@ -2,8 +2,8 @@
 library(ncdf4)
 library(chron)
 
-for (model_name in c("x_dxl")){
-for (iter in 1:1){
+for (model_name in c("full")){
+for (iter in 8:8){
 
 model = paste0(model_name, "_", iter)
 
