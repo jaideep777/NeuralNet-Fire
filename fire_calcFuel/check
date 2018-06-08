@@ -2,4 +2,3 @@ cdo ymonmean output_ssaplus/dxl.2007-1-1-2015-12-31.nc output_ssaplus/dxl_monmea
 cdo ymonmean output_ssaplus/lmois.2007-1-1-2015-12-31.nc output_ssaplus/lmois_monmean.nc
 ncview output_ssaplus/dxl_monmean.nc & 
 ncview output_ssaplus/lmois_monmean.nc &
-

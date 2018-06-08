@@ -1,0 +1,5 @@
+#!/bin/bash
+
+make
+./aggregate eval ssaplus
+cdo ifthen /media/jaideep/WorkData/Fire_G/forest_type/MODIS/ftmask_MODIS_0.5deg.nc output_ssaplus/fire.2007-1-1-2015-12-31.nc output_ssaplus/fire_pred_masked.nc

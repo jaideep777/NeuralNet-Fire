@@ -19,7 +19,7 @@ ofstream train_fout;
 float fire_classes_mids[] = {0, 1, 2, 8, 32, 128, 512, 1024};
 float ba_classes_mids[] = {0.000000,   0.500000,   1.414214,   2.828427,   5.656854,  11.313708,  22.627417,  45.254834,  90.509668, 181.019336, 362.038672, 724.077344};
 
-string tres = "fortnightly";
+string tres = "monthly";
 
 void init_train(){
 	cout << "> Running in TRAIN mode." << endl;
@@ -82,7 +82,8 @@ void write_train(int yr, int mon, int day){
 		// write sample to training dataset				
 		if (train){
 			float forest_frac = 1 - vegtype(ilon, ilat, barren_pft_code) - vegtype(ilon, ilat, agri_pft_code);
-			ba(ilon,ilat,0) /= 55.5e3*55.5e3;
+//			float cell_area = mgdlat*111e3*mgdlon*111e3*cos(mglats[ilat]*3.14159265/180);
+//			ba(ilon,ilat,0) /= cell_area;
 
 			train_fout << yr << "\t" << mon << "\t" << day << "\t";
 			train_fout << mglons[ilon] << "\t" << mglats[ilat] << "\t";
@@ -130,8 +131,9 @@ void write_eval(){
 						 ts(ilon, ilat, 0),
 						 wsp(ilon, ilat, 0),
 						 dxl (ilon, ilat, 0),
-						 lmois(ilon, ilat, 0),
-						 log(1+pop(ilon,ilat,0))
+						 //lmois(ilon, ilat, 0),
+						 log(1+pop(ilon,ilat,0)),
+						 vegtype(ilon, ilat, agri_pft_code)
 						};
 			Matrix X(1,6,x);
 			Matrix Y = fireNet.forward_prop(X, true);
@@ -150,8 +152,8 @@ void write_eval(){
 			float ba_pred = 0;
 			for (int i=0; i<Y.m*Y.n; ++i) ba_pred += ba_classes_mids[i]/1024.0*Y.data[i];
 
-			ba_pred -= 0.001;
-			if (ba_pred < 0) ba_pred = 0;
+//			ba_pred -= 0.001;
+//			if (ba_pred < 0) ba_pred = 0;
 			//if (mglons[ilon] == 88 && mglats[ilat] == 26.5) cout << ba_pred << endl;
 			fire(ilon, ilat, 0) = ba_pred; //exp(nfires/6.7)-1;
 		}

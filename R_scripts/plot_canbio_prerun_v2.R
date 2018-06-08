@@ -12,8 +12,8 @@ plot.canbio = function(y,x, label, col.pr="green3", col.main="black", col.pr1="g
 }
 
 
-png(paste0(fire_dir,"/figures/canbio_gpp_modis_24.png"), height=900*3, width=600*3, res=300)
-par(mfrow = c(8,1), mar=c(0.2,5,1,1), oma=c(4,1,1,1))
+png(paste0(fire_dir,"/fire_calcFuel/figures/canbio_gpp_modis_24.png"), height=900*3, width=600*3, res=300)
+par(mfrow = c(8,1), mar=c(0.2,8,1,1), oma=c(4,1,1,1), cex.lab=1.2, cex.axis=1.2)
 
 # plot(dat$canbio0~as.Date(dat$date), type="l")
 # points(dat$canbio0[1:60]~as.Date(dat$date[1:60]), type="l", col="green3", lwd=2)
@@ -22,13 +22,13 @@ plot.canbio(dat$canbio1, as.Date(dat$date), "NLE")
 plot.canbio(dat$canbio2, as.Date(dat$date), "BLE")
 # plot.canbio(dat$canbio3, as.Date(dat$date), "NLD")
 # plot.canbio(dat$canbio4, as.Date(dat$date), "BLD")
-plot.canbio(dat$canbio5, as.Date(dat$date), "SCD")
+plot.canbio(dat$canbio5, as.Date(dat$date), "Closed\nShrublands")
 # plot.canbio(dat$canbio6, as.Date(dat$date), "SCX")
-plot.canbio(dat$canbio7, as.Date(dat$date), "MD")
-plot.canbio(dat$canbio8, as.Date(dat$date), "DD")
-plot.canbio(dat$canbio9, as.Date(dat$date), "GR")
-plot.canbio(dat$canbio10, as.Date(dat$date), "AG")
-plot.canbio(dat$dxl, as.Date(dat$date), "dxL", col.main="brown", col.pr="yellow", col.pr1="orange")
+plot.canbio(dat$canbio7, as.Date(dat$date), "Woody\nSavanna")
+plot.canbio(dat$canbio8, as.Date(dat$date), "Savanna")
+plot.canbio(dat$canbio9, as.Date(dat$date), "Grasslands")
+plot.canbio(dat$canbio10, as.Date(dat$date), "Croplands")
+plot.canbio(dat$dxl, as.Date(dat$date), "Litter", col.main="brown", col.pr="yellow", col.pr1="orange")
 axis(side=1, at = as.Date(dat$date), labels = substr(as.Date.character(dat$date),start = 1, stop = 4), tick = F)
 
 dev.off()

@@ -12,7 +12,7 @@ import sys
 #  
 #"""
 
-sim_name = 'ssaplus'
+sim_name = 'ssaplus_mlp'
 suffix = ''
 if sim_name != '':
   suffix = suffix + '_' + sim_name
@@ -22,7 +22,7 @@ __learn_rate = 0.005
 __batch_size = 5000
 __n_steps = 2500
 
-n_classes = 12
+n_classes = 1
 
 nn_h1 = 12
 
@@ -36,9 +36,11 @@ ID_dxl 		= 13
 ID_lmois 	= 14
 ID_ba		= 20 # 19 for georgia, 20 for gfed4
 ID_pop		= 22
-	
-#X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop, ID_agf]
-X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_pop, ID_agf]
+ID_bacont   = 12
+
+
+#X_ids = [ID_rh, ID_ts,  ID_wsp,  ID_dxl ,  ID_lmois, ID_pop]
+X_ids = [ID_rh, ID_wsp,  ID_dxl, ID_lmois, ID_pop, ID_agf]
 n_inputs = len(X_ids)
 
 # functions to initialize weights and biases
@@ -73,7 +75,7 @@ def create_dataset(filename, map_fun, batch_size, rep=1, buffer_size=0):
 def denseNet(x, W1,b1,Wo,bo):
   y1 = tf.nn.elu(tf.matmul(x,W1) + b1)  # first layer neurons with sigmoid activation
 #  y2 = tf.nn.sigmoid(tf.matmul(y1,W2) + b2)  # first layer neurons with sigmoid activation
-  y = tf.matmul(y1,Wo) + bo
+  y = tf.exp(tf.matmul(y1,Wo) + bo)
   
   return y
 
@@ -87,7 +89,7 @@ print("DONE")
 np.set_printoptions(precision=3, suppress=True)
 print("--------------")
 print("Input: (head) | y");
-print(my_data[0:5, X_ids+[ID_ba]])
+print(my_data[0:5, X_ids+[ID_bacont]])
 print("--------------")
 print("Output: (head)");
 print(tf.Session().run(tf.one_hot(my_data[0:5,ID_ba], depth=n_classes, dtype=tf.int32)))
@@ -101,11 +103,11 @@ print("--------------")
 
 print("Reading evalutation data...")
 eval_data = genfromtxt('../fire_aggregateData/output'+suffix+'/eval_forest.csv', delimiter=',',skip_header=1)
-print(eval_data[0:5, X_ids+[ID_ba]])
+print(eval_data[0:5, X_ids+[ID_bacont]])
 
 print("Reading test data...")
 test_data = genfromtxt('../fire_aggregateData/output'+suffix+'/test_forest.csv', delimiter=',',skip_header=1)
-print(test_data[0:5, X_ids+[ID_ba]])
+print(test_data[0:5, X_ids+[ID_bacont]])
 print("--------------")
 
 
@@ -119,18 +121,18 @@ print(bi)
 #### TENSORFLOW GRAPH BUILDING STARTS HERE ### 
 
 xin = tf.matmul(tf.cast(my_data[:,X_ids], tf.float32), Wi) - bi
-yin = tf.one_hot(my_data[:,ID_ba], depth=n_classes, dtype=tf.int32)
+yin = my_data[:,ID_bacont]
 
 print("Scaled inputs:")
 print(tf.Session().run(xin[0:5,:]))
-print(tf.Session().run(yin[0:5,:]))
+#print(tf.Session().run(yin[0:5,:]))
 print("--------------")
 
 xeval = tf.matmul(tf.cast(eval_data[:,X_ids], tf.float32), Wi) - bi
-yeval = tf.one_hot(eval_data[:,ID_ba], depth=n_classes, dtype=tf.int32)
+yeval = eval_data[:,ID_bacont]
 
 xtest = tf.matmul(tf.cast(test_data[:,X_ids], tf.float32), Wi) - bi
-ytest = tf.one_hot(test_data[:,ID_ba], depth=n_classes, dtype=tf.int32)
+ytest = test_data[:,ID_bacont] 
 
 print("Scaled test data:")
 print(tf.Session().run(xtest[0:5,:]))
@@ -179,28 +181,30 @@ y = denseNet(x, W1,b1,Wo,bo)
 ### TRAINING ###
 
 # training operation
-cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
+cross_entropy = tf.reduce_mean(tf.losses.mean_squared_error(labels=y_, predictions=y))
 train_op = tf.train.AdamOptimizer(__learn_rate).minimize(cross_entropy)
 
 # calculate accuracy on the training sample
-y_soft = tf.nn.softmax(denseNet(x, W1,b1,Wo,bo))
-correct_prediction = tf.equal(tf.argmax(y_soft,1), tf.argmax(y_,1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
+y_soft = denseNet(x, W1,b1,Wo,bo)
+#correct_prediction = tf.equal(tf.argmax(y_soft,1), tf.argmax(y_,1))
+#accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+accuracy = tf.reduce_mean(tf.losses.mean_squared_error(labels=y_, predictions=y_soft))
 
 # calculate accuracy on the validation dataset
 xv  = tf.reshape(xeval, shape=[-1, n_inputs])
 yv_ = tf.reshape(yeval, shape=[-1, n_classes])
-yv_soft = tf.nn.softmax(denseNet(xv, W1,b1,Wo,bo))
-correct_prediction_v = tf.equal(tf.argmax(yv_soft,1), tf.argmax(yv_,1))
-accuracy_v = tf.reduce_mean(tf.cast(correct_prediction_v, tf.float32))
+yv_soft = denseNet(xv, W1,b1,Wo,bo)
+#correct_prediction_v = tf.equal(tf.argmax(yv_soft,1), tf.argmax(yv_,1))
+#accuracy_v = tf.reduce_mean(tf.cast(correct_prediction_v, tf.float32))
+accuracy_v = tf.reduce_mean(tf.losses.mean_squared_error(labels=yv_, predictions=yv_soft))
 
 # calculate accuracy on the test dataset
 xt  = tf.reshape(xtest, shape=[-1, n_inputs])
 yt_ = tf.reshape(ytest, shape=[-1, n_classes])
-yt_soft = tf.nn.softmax(denseNet(xt, W1,b1,Wo,bo))
-correct_prediction_t = tf.equal(tf.argmax(yt_soft,1), tf.argmax(yt_,1))
-accuracy_t = tf.reduce_mean(tf.cast(correct_prediction_t, tf.float32))
+yt_soft = denseNet(xt, W1,b1,Wo,bo)
+#correct_prediction_t = tf.equal(tf.argmax(yt_soft,1), tf.argmax(yt_,1))
+#accuracy_t = tf.reduce_mean(tf.cast(correct_prediction_t, tf.float32))
+accuracy_t = tf.reduce_mean(tf.losses.mean_squared_error(labels=yt_, predictions=yt_soft))
 
 
 acc_avg = 0
@@ -241,9 +245,9 @@ with tf.Session() as sess:
   print("Average    ",0,": ",ce_avg/count, "\t", acc_avg/count, "\t", accv_avg/count, "\t", acct_avg/count)
 
   # final class probabilities for train, eval and test datasets
-  y_tr = sess.run(tf.nn.softmax(denseNet(tf.reshape(xin,   [-1,n_inputs]),W1,b1,Wo,bo)))
-  y_ev = sess.run(tf.nn.softmax(denseNet(tf.reshape(xeval, [-1,n_inputs]),W1,b1,Wo,bo)))
-  y_ts = sess.run(tf.nn.softmax(denseNet(tf.reshape(xtest, [-1,n_inputs]),W1,b1,Wo,bo)))
+  y_tr = sess.run(denseNet(tf.reshape(xin,   [-1,n_inputs]),W1,b1,Wo,bo))
+  y_ev = sess.run(denseNet(tf.reshape(xeval, [-1,n_inputs]),W1,b1,Wo,bo))
+  y_ts = sess.run(denseNet(tf.reshape(xtest, [-1,n_inputs]),W1,b1,Wo,bo))
 
 
   np.savetxt("../fire_aggregateData/output"+suffix+"/y_predic_ba_train.txt",y_tr,delimiter=" ")

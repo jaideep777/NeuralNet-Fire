@@ -147,23 +147,23 @@ plot.netcdf = function(dat, zlim, col, ilev=1, shp = NULL, ...){
 }
 
 
-plot.colormap = function(X,Y,Z, zlim, col, cex, xlim, ylim){
+plot.colormap = function(X,Y,Z, zlim, col, cex, xlim, ylim, ...){
   dataramp = seq(zlim[1],zlim[2], length.out=length(col) )
   colbreaks = as.numeric(cut(Z, breaks = dataramp))  
   layout(rbind(1,1,1,1,1,2))
-  par(mar=c(4,4,1,1), oma=c(1,1,1,1), cex.lab=1.8, cex.axis=1.8)
-  image(x=seq(xlim[1],xlim[2],length.out = 100), y=seq(ylim[1],ylim[2],length.out = 100), z=matrix(nrow = 100, ncol=100), zlim=c(0,1))
+  par(mar=c(4,5,1,1), oma=c(1,1,1,1), cex.lab=1.8, cex.axis=1.8)
+  image(x=seq(xlim[1],xlim[2],length.out = 100), y=seq(ylim[1],ylim[2],length.out = 100), z=matrix(nrow = 100, ncol=100), zlim=c(0,1), ...)
   points(Y~X, pch=".", col=col[colbreaks], cex=cex)  
   # plot(shp, add=T)
   image(x= dataramp, z = matrix(ncol=1, data=dataramp), zlim = zlim, col = col, xlab="", ylab="", yaxt="n" )  
 }
 
-plot.colormap1 = function(X,Y,Z, zlim, col, cex, xlim, ylim){
+plot.colormap1 = function(X,Y,Z, zlim, col, cex, xlim, ylim, ...){
   dataramp = seq(zlim[1],zlim[2], length.out=length(col) )
   cols = col[Z+1]
   layout(rbind(1,1,1,1,1,2))
-  par(mar=c(4,4,1,1), oma=c(1,1,1,1), cex.lab=1.8, cex.axis=1.8)
-  image(x=seq(xlim[1],xlim[2],length.out = 100), y=seq(ylim[1],ylim[2],length.out = 100), z=matrix(nrow = 100, ncol=100), zlim=c(0,1))
+  par(mar=c(4,5,1,1), oma=c(1,1,1,1), cex.lab=1.8, cex.axis=1.8)
+  image(x=seq(xlim[1],xlim[2],length.out = 100), y=seq(ylim[1],ylim[2],length.out = 100), z=matrix(nrow = 100, ncol=100), zlim=c(0,1), ...)
   points(Y~X, pch=".", col=cols, cex=cex)  
   # plot(shp, add=T)
   image(x= dataramp, z = matrix(ncol=1, data=dataramp), zlim = zlim, col = col, xlab="", ylab="", yaxt="n" )  
@@ -176,7 +176,7 @@ mids = function(x){
 
 
 read.fireData = function(dataset, dir){
-  datf = read.csv(file = paste0(dir,"/",dataset,"_forest.csv"))
+  datf = read.csv(file = paste0(dir,"/../",dataset,"_forest.csv"))
   
   daty = read.delim(paste0(dir,"/y_predic_ba_",dataset,".txt"), header=F, sep=" ")
   # nfires_classes = c(0,1,sqrt(fire_classes[2:length(fire_classes)]* c(fire_classes[3:length(fire_classes)])))
@@ -185,7 +185,7 @@ read.fireData = function(dataset, dir){
   ba_classes = c(0,2^(seq(log2(2^0), log2(2^10), length.out=11)))/1024
   ba_classes_mids = c(0, 0.5/1024, sqrt(ba_classes[3:length(ba_classes)-1]*ba_classes[3:length(ba_classes)]))
   datf$ba.pred = apply(X=daty, MARGIN=1, FUN=function(x){sum(ba_classes_mids*x)})
-  datf$ba.pred = datf$ba.pred - 0.001
+  datf$ba.pred = datf$ba.pred - 0.002
   datf$ba.pred[datf$ba.pred < 0] = 0;
   datf$baclass_pred = sapply(datf$ba.pred,FUN = function(x){length(which(x>ba_classes))})
   
@@ -193,7 +193,7 @@ read.fireData = function(dataset, dir){
 }
 
 read.fireData_gfed = function(dataset, dir){
-  datf = read.csv(file = paste0(dir,"/",dataset,"_forest.csv"))
+  datf = read.csv(file = paste0(dir,"/../",dataset,"_forest.csv"))
   
   daty = read.delim(paste0(dir,"/y_predic_ba_",dataset,".txt"), header=F, sep=" ")
   # nfires_classes = c(0,1,sqrt(fire_classes[2:length(fire_classes)]* c(fire_classes[3:length(fire_classes)])))
@@ -202,7 +202,8 @@ read.fireData_gfed = function(dataset, dir){
   ba_classes = c(0,2^(seq(log2(2^0), log2(2^10), length.out=11)))/1024
   ba_classes_mids = c(0, 0.5/1024, sqrt(ba_classes[3:length(ba_classes)-1]*ba_classes[3:length(ba_classes)]))
   datf$ba.pred = apply(X=daty, MARGIN=1, FUN=function(x){sum(ba_classes_mids*x)})
-  datf$ba.pred[datf$ba.pred < 0.002] = 0;
+  datf$ba.pred = datf$ba.pred - 0.002
+  datf$ba.pred[datf$ba.pred < 0] = 0;
   datf$baclass_pred = sapply(datf$ba.pred,FUN = function(x){length(which(x>ba_classes))})
   
   datf$ba = datf$gfed

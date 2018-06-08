@@ -2,7 +2,9 @@
 library(ncdf4)
 library(chron)
 
-sim_name           <- "ssaplus"
+model = "gfed_xcf_9"
+
+sim_name           <- paste0("ssaplus/", model)
 suffix = ""
 if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
 output_dir = paste0("output",suffix)
@@ -18,9 +20,12 @@ fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
 fire_pred$data = fire_pred$data - 0.001
 fire_pred$data[fire_pred$data < 0.00] = 0
 
-fire_obs = NcCreateOneShot(filename = "fire_obs_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
+cell_area = t(matrix(ncol = length(fire_pred$lons), data = rep(55.5e3*55.5e3*cos(fire_pred$lats*pi/180), length(fire_pred$lons) ), byrow = F ))
+
+fire_obs = NcCreateOneShot(filename = "../fire_gfed_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
 fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
-fire_obs$data = fire_obs$data/55.5e3/55.5e3
+# fire_obs = NcClipTime(fire_obs, "2008-1-1", "2010-12-31")
+# for (i in 1:dim(fire_obs$data)[3]) fire_obs$data[,,i] = fire_obs$data[,,i]*cell_area
 
 
 f = function(x){
@@ -54,7 +59,7 @@ names = c("summer", "monsoon", "postmonsoon_winter")
 seasmonths = c("FMAM", "JJAS", "ONDJ")
 
 for (sea in 1:length(seasons)){
-  png(filename = paste0("figures/", names[sea], "(",model,").png"),res = 300,width = 1200,height = 2700) # 2700 for ssaplus, india, 2200 for SAS
+  png(filename = paste0("figures/", names[sea], "(",model,").png"),res = 300,width = 1200,height = 2700) # 2700 for ssaplus, india, 2200 for SAS 
   # layout(matrix(c(1,2,3,4,5,6,7,8),2,4,byrow = F))  # horizontal
   layout(matrix(c(1,2,3,4,5,6,7,8),4,2,byrow = T))  # vertical
   par(mar=c(4,4,3,1), oma=c(1,2,6,2), cex.lab=3, cex.axis=1.5)
@@ -64,23 +69,22 @@ for (sea in 1:length(seasons)){
     # slice_pred[ftmask$data == 0] = 0
     slice_pred[is.nan(slice_pred)] = NA
     image(fire_pred$lon,fire_pred$lat,slice_pred,col = cols,zlim = c(0,1), xlab="Longitude",ylab = "Latitude",cex.lab=1.6)
-    mtext(cex = 0.8, line = .5, text = sprintf("Total BA = %.2f", sum(slice_pred, na.rm=T)*55.5e3*55.5e3*0.0001/1e6))
+    mtext(cex = 0.8, line = .5, text = sprintf("Total BA = %.2f", sum(slice_pred*cell_area, na.rm=T)*0.0001/1e6))
     # plot(shp, add=T, col="white")
     
     slice_obs = apply(X = fire_obs$data[,,which(fire_obs$month == i)], FUN = function(x){mean(x, na.rm=T)}, MARGIN = c(1,2))
+    # slice_obs = slice_obs/cell_area
     # slice_obs = (diffuse(slice_obs, 0.1, 0))
     # slice_obs[ftmask$data == 0] = 0
     slice_obs[is.nan(slice_obs)] = NA
     image(fire_obs$lon,fire_obs$lat,slice_obs,col = cols,zlim = c(0,1),xlab = "Longitude",ylab = "Latitude",cex.lab=1.6)
-    mtext(cex = 0.8, line = .5, text = sprintf("Total BA = %.2f", sum(slice_obs, na.rm=T)*55.5e3*55.5e3*0.0001/1e6))
+    mtext(cex = 0.8, line = .5, text = sprintf("Total BA = %.2f", sum(slice_obs*cell_area, na.rm=T)*0.0001/1e6))
     # plot(shp, add=T, col="white")
     
   }
   mtext(text = seasmonths[sea],side = 3,line = 1,outer = T)
   dev.off()
 }
-
-
 
 #########
 

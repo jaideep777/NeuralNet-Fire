@@ -1,11 +1,16 @@
 
+model = "gfed_full_3"
 
+sim_name           <- paste0("ssaplus/", model)
+suffix = ""
+if (sim_name != "") suffix = paste0(suffix,"_",sim_name)
+output_dir = paste0("output",suffix)
 
 
 plot.cut.means = function(obs, pred, var, min, max, col.obs, col.pred, ...){
   brks = seq(min,max, length.out=21)
   cuts = cut(var, breaks = brks, include.lowest = T)
-  plot(x= mids(brks), y=tapply(obs, INDEX = cuts, FUN = mean), col=col.obs, lwd=2, ... ,ylim = c(0,0.010))
+  plot(x= mids(brks), y=tapply(obs, INDEX = cuts, FUN = mean), col=col.obs, lwd=2, ...)
   points(x= mids(brks), y=tapply(pred, INDEX = cuts, FUN = mean), type="l", lwd=2, col=col.pred)
   #add_label(0.00, 0.1, label ="sum", cex=1.5, pos=4.2)
   #add_label(0.00, 0.3, label =sum(datf.fn$ba), cex=1.5, pos=4.2)
@@ -25,15 +30,17 @@ plot.relations = function(datf.fn, dataset="Training"){
   # r2 = summary(lm(tapply(datf.fn$ba, INDEX = dxl_cuts, FUN = mean)~tapply(datf.fn$ba.pred, INDEX = dxl_cuts, FUN = mean)))$adj.r.squared
   # add_label(0.00, 0.15, label = sprintf("R2 = %.2f", r2), cex=1.5, pos=4)
   # mtext(side = 3, text = dataset, line=0.5)
-  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$dxl, min = 0, max = 300, col.obs = "green2", col.pred = "green4", xlab="Fuel mass", ylab="Burned area")
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$dxl, min = 0, max = 300, col.obs = "green2", col.pred = "green4", xlab="Fuel mass", ylab="Burned area", ylim=c(0,0.04))
   mtext(side = 3, text = dataset, line=0.5, col="blue")
   
-  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$lmois, min = 0, max = 1, col.obs = "cyan3", col.pred = "blue", xlab="Fuel moisture", ylab="Burned area")
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$lmois, min = 0, max = 1, col.obs = "cyan3", col.pred = "blue", xlab="Fuel moisture", ylab="Burned area", ylim=c(0,0.02))
   # plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$ts, min = 250-273.16, max = 320-273.16, col.obs = "orange2", col.pred = "red", xlab="Temperature", ylab="Burned area")
-  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$ts, min = 250, max = 320, col.obs = "orange2", col.pred = "red", xlab="Temperature", ylab="Burned area")
-  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$rh, min = 0, max = 110, col.obs = "magenta", col.pred = "magenta4", xlab="Rel humidity", ylab="Burned area")
-  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$wsp, min = 0, max = 8, col.obs = "grey60", col.pred = "grey30", xlab="Wind speed", ylab="Burned area")
-  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$logpop, min = 0, max = 8, col.obs = "goldenrod", col.pred = "goldenrod4", xlab="Log pop density", ylab="Burned area")
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$ts, min = 250, max = 320, col.obs = "orange2", col.pred = "red", xlab="Temperature", ylab="Burned area", ylim=c(0,0.01))
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$rh, min = 0, max = 110, col.obs = "magenta", col.pred = "magenta4", xlab="Rel humidity", ylab="Burned area", ylim=c(0,0.02))
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$wsp, min = 0, max = 8, col.obs = "grey60", col.pred = "grey30", xlab="Wind speed", ylab="Burned area", ylim=c(0,0.01))
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$logpop, min = 0, max = 8, col.obs = "goldenrod", col.pred = "goldenrod4", xlab="Log pop density", ylab="Burned area", ylim=c(0,0.01))
+
+  plot.cut.means(obs = datf.fn$ba, pred = datf.fn$ba.pred, var = datf.fn$agri_frac, min = 0, max = 0.8, col.obs = "mediumspringgreen", col.pred = "mediumseagreen", xlab="Cropland fraction", ylab="Burned area", ylim=c(0,0.01))
   
   
   # breaks_ts = seq(250,320, length.out=20)
@@ -64,12 +71,9 @@ plot.relations = function(datf.fn, dataset="Training"){
 }
 
 
-
-model = "full"
-
-datf_train = read.fireData(dataset = "train", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
-datf_eval = read.fireData(dataset = "eval", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
-datf_test = read.fireData(dataset = "test", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
+datf_train = read.fireData_gfed(dataset = "train", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
+datf_eval = read.fireData_gfed(dataset = "eval", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
+datf_test = read.fireData_gfed(dataset = "test", dir=paste0(fire_dir, "/fire_aggregateData/",output_dir))
 
 dat.ag_train = datf_train
 dat.ag_test = datf_test
@@ -88,11 +92,11 @@ ts_obs_eval = tapply(X = dat.ag_eval$ba, INDEX = dat.ag_eval$date, FUN = sum)
 ts_pred_eval = tapply(X = dat.ag_eval$ba.pred, INDEX = dat.ag_eval$date, FUN = sum)
 
 setwd(paste0(fire_dir, "/fire_aggregateData/",output_dir,"/figures"))
-png(filename = paste0("pred_obs_vars(",model,").png"), width = 660*3, height = 1050*3, res = 300)
+png(filename = paste0("pred_obs_vars(",model,").png"), width = 660*3, height = 1200*3, res = 300)
 
-layout(matrix(data=c( 1, 2,3,4,5,6,7,
-                      1, 8,9,10,11,12,13,
-                      1, 14,15,16,17,18,19) , ncol = 3,byrow = F)
+layout(matrix(data=c( 1, 2,3,4,5,6,7,8,
+                      1, 9,10,11,12,13,14,15,
+                      1, 16,17,18,19,20,21,22) , ncol = 3,byrow = F)
       )
 par(mar=c(4,5,1,1), oma=c(1,1,1,1), cex.axis=1.5, cex.lab=1.5)
 train_dates = as.Date(names(ts_obs_train))

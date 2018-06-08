@@ -177,6 +177,8 @@ int init_modelvar(gVar &v, string var_name, string unit, int nl, vector<double> 
 	v.lwrite = writeVar_flags[var_name];	
 	v.lwriteSP = writeVarSP_flags[var_name] & spout_on;
 	
+	v.setRegriddingMethod("bilinear");
+
 	// add gVar to model variables list
 	model_variables.push_back(&v);
 
