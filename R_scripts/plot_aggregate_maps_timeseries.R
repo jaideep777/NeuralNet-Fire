@@ -2,7 +2,7 @@
 library(ncdf4)
 library(chron)
 
-fire_dir = "/home/jaideep/codes/FIRE_CODES"
+fire_dir = "/home/jaideep/codes/NeuralNet-Fire"
 
 for (mod in c("gfed_xcf")){ #}, "xdxl", "xlmois", "xts", "xpop", "xrh", "xwsp", "xrh_lmois")){
   
@@ -43,16 +43,16 @@ glimits = c(60.25,99.75,5.25,49.75)  # ssaplus
 
 
 fire_pred = NcCreateOneShot(filename = "fire_pred_masked.nc", var_name = "fire", glimits = glimits)
-# fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
-fire_pred = NcClipTime(fire_pred, "2008-1-1", "2010-12-31")
+fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
+# fire_pred = NcClipTime(fire_pred, "2008-1-1", "2010-12-31")
 fire_pred$data = fire_pred$data - 0.002
 fire_pred$data[fire_pred$data < 0.00] = 0
 
 cell_area = t(matrix(ncol = length(fire_pred$lons), data = rep(55.5e3*55.5e3*cos(fire_pred$lats*pi/180), length(fire_pred$lons) ), byrow = F ))
 
 fire_obs = NcCreateOneShot(filename = "../fire_gfed_masked_2007-2015.nc", var_name = "ba", glimits = glimits)
-# fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
-fire_obs = NcClipTime(fire_obs, "2008-1-1", "2010-12-31")
+fire_obs = NcClipTime(fire_obs, "2007-1-1", "2015-11-30")
+# fire_obs = NcClipTime(fire_obs, "2008-1-1", "2010-12-31")
 
 # for (i in 1:dim(fire_obs$data)[3]) fire_obs$data[,,i] = fire_obs$data[,,i]*cell_area
 

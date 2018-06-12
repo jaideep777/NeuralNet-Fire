@@ -17,7 +17,7 @@ setwd(paste0(fire_dir,"/fire_aggregateData/output",suffix ))
 
 fire_pred = NcCreateOneShot(filename = "fire_pred_masked.nc", var_name = "fire", glimits = glimits)
 fire_pred = NcClipTime(fire_pred, "2007-1-1", "2015-11-30")
-fire_pred$data = fire_pred$data - 0.001
+fire_pred$data = fire_pred$data - 0.001 # <------- TODO: correct this in next revision
 fire_pred$data[fire_pred$data < 0.00] = 0
 
 cell_area = t(matrix(ncol = length(fire_pred$lons), data = rep(55.5e3*55.5e3*cos(fire_pred$lats*pi/180), length(fire_pred$lons) ), byrow = F ))

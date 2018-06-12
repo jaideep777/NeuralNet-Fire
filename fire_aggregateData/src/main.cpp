@@ -82,8 +82,8 @@ void write_train(int yr, int mon, int day){
 		// write sample to training dataset				
 		if (train){
 			float forest_frac = 1 - vegtype(ilon, ilat, barren_pft_code) - vegtype(ilon, ilat, agri_pft_code);
-//			float cell_area = mgdlat*111e3*mgdlon*111e3*cos(mglats[ilat]*3.14159265/180);
-//			ba(ilon,ilat,0) /= cell_area;
+			float cell_area = mgdlat*111e3*mgdlon*111e3*cos(mglats[ilat]*3.14159265/180);
+			ba(ilon,ilat,0) /= cell_area;
 
 			train_fout << yr << "\t" << mon << "\t" << day << "\t";
 			train_fout << mglons[ilon] << "\t" << mglats[ilat] << "\t";
@@ -131,11 +131,11 @@ void write_eval(){
 						 ts(ilon, ilat, 0),
 						 wsp(ilon, ilat, 0),
 						 dxl (ilon, ilat, 0),
-						 //lmois(ilon, ilat, 0),
+						 lmois(ilon, ilat, 0),
 						 log(1+pop(ilon,ilat,0)),
 						 vegtype(ilon, ilat, agri_pft_code)
 						};
-			Matrix X(1,6,x);
+			Matrix X(1,7,x);
 			Matrix Y = fireNet.forward_prop(X, true);
 //			float nfires = 0;
 //			for (int i=0; i<Y.m*Y.n; ++i) nfires += fire_classes_mids[i]*Y.data[i];

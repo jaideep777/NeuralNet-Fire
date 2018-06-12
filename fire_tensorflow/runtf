@@ -1,9 +1,12 @@
 #!/bin/bash
 
-. /home/jaideep/tensorflow/bin/activate
+PATH_BAK=$PATH
+export PATH=$PATH:/home/jaideep/anaconda2/bin
+. activate tensorflow
 python nn_const_data_fire_v4.py
-deactivate
-sed -i -e "s/\\[/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
-sed -i -e "s/\\]/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
-sed -i -e "s/\\,/ /g" ~/codes/FIRE_CODES/fire_aggregateData/output_ssaplus/weights_ba.txt
+. deactivate
+sed -i -e "s/\\[/ /g" ~/codes/NeuralNet-Fire/fire_aggregateData/output_ssaplus/weights_ba.txt
+sed -i -e "s/\\]/ /g" ~/codes/NeuralNet-Fire/fire_aggregateData/output_ssaplus/weights_ba.txt
+sed -i -e "s/\\,/ /g" ~/codes/NeuralNet-Fire/fire_aggregateData/output_ssaplus/weights_ba.txt
+PATH=$PATH_BAK
 

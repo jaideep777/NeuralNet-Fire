@@ -155,7 +155,7 @@ plot.colormap = function(X,Y,Z, zlim, col, cex, xlim, ylim, ...){
   image(x=seq(xlim[1],xlim[2],length.out = 100), y=seq(ylim[1],ylim[2],length.out = 100), z=matrix(nrow = 100, ncol=100), zlim=c(0,1), ...)
   points(Y~X, pch=".", col=col[colbreaks], cex=cex)  
   # plot(shp, add=T)
-  image(x= dataramp, z = matrix(ncol=1, data=dataramp), zlim = zlim, col = col, xlab="", ylab="", yaxt="n" )  
+  # image(x= dataramp, z = matrix(ncol=1, data=dataramp), zlim = zlim, col = col, xlab="", ylab="", yaxt="n" )  
 }
 
 plot.colormap1 = function(X,Y,Z, zlim, col, cex, xlim, ylim, ...){
